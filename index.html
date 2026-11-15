@@ -33,7 +33,7 @@
 <h2 data-i="receiving">Receiving / Recepción</h2>
 <p class="alert" data-i="receivingDemo">MODO DE PRUEBA: este formulario no guarda ni modifica datos en Supabase.</p>
 <div id="receivingRestricted" class="alert hidden" data-i="receivingRestricted">Solo administradores y supervisores pueden preparar recepciones.</div>
-<div id="receivingEditor">
+<div id="recvLookup" style="border:1px solid #d6e1eb;border-radius:10px;padding:14px;margin:12px 0;background:#f8fafc"><h3 data-i="recvFindTitle">Buscar recepción guardada</h3><p class="muted" data-i="recvFindHelp">Selecciona un borrador de Supabase para cargar sus productos y Racks.</p><button type="button" id="recvFindRefresh" data-i="recvFindRefresh">Buscar borradores</button><label for="recvFindSelect" data-i="recvFindSelect">Borradores disponibles</label><select id="recvFindSelect"></select><button type="button" id="recvFindLoad" data-i="recvFindLoad">Cargar borrador</button><p id="recvFindMessage" role="status" class="alert hidden"></p></div><div id="receivingEditor">
 <label for="recvBol" data-i="recvBol">Bill of Lading (BOL)</label><input id="recvBol" maxlength="120" placeholder="BOL-0001">
 <label for="recvSupplier" data-i="recvSupplier">Proveedor</label><input id="recvSupplier" maxlength="150" placeholder="Supplier / Proveedor">
 <label for="recvDate" data-i="recvDate">Fecha de recepción</label><input id="recvDate" type="date">
@@ -432,6 +432,60 @@ $('recvSaveDraft').onclick=async()=>{
  }catch(err){showMessage('recvMessage',err.message||String(err));}
  finally{recvBusy=false;button.disabled=false;recvSyncPost();}
 };
+
+// Read-only retrieval of previously saved Supabase Receiving drafts.
+Object.assign(tr.es,{recvFindTitle:'Buscar recepción guardada',recvFindHelp:'Selecciona un borrador de Supabase para cargar productos y Racks.',recvFindRefresh:'Buscar borradores',recvFindSelect:'Borradores disponibles',recvFindLoad:'Cargar borrador',recvFindEmpty:'No hay borradores disponibles.',recvFindLoading:'Buscando borradores…',recvFindLoadingOne:'Cargando recepción…',recvFindDone:'Borrador cargado desde Supabase. Revisa todos los datos antes de contabilizar.',recvFindError:'No se pudo cargar la recepción: ',recvFindChoose:'Selecciona primero un borrador.',recvFindDiscard:'¿Reemplazar el formulario actual con el borrador seleccionado? Se perderán los cambios no guardados.',receivingDemo:'Borradores guardados en Supabase. Puedes recuperar uno y contabilizarlo tras revisarlo.'});
+Object.assign(tr.en,{recvFindTitle:'Find saved receiving',recvFindHelp:'Select a Supabase draft to load products and Racks.',recvFindRefresh:'Find drafts',recvFindSelect:'Available drafts',recvFindLoad:'Load draft',recvFindEmpty:'No drafts available.',recvFindLoading:'Finding drafts…',recvFindLoadingOne:'Loading receiving…',recvFindDone:'Draft loaded from Supabase. Review all details before posting.',recvFindError:'Could not load receiving: ',recvFindChoose:'Select a draft first.',recvFindDiscard:'Replace the current form with this draft? Unsaved changes will be lost.',receivingDemo:'Drafts are saved in Supabase. You can reload and post them after review.'});
+let recvDraftChoices=[];
+async function recvFindDrafts(){
+ if(!client||!['admin','supervisor'].includes(currentRole))return;
+ const button=$('recvFindRefresh');button.disabled=true;
+ showMessage('recvFindMessage',t('recvFindLoading'),true);
+ try{
+  const {data,error}=await client.from('receivings').select('id,bol_number,supplier_name,status,created_at').eq('status','draft').order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  recvDraftChoices=data||[];
+  const select=$('recvFindSelect');select.replaceChildren();
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=t('choose');select.append(placeholder);
+  recvDraftChoices.forEach(r=>{const option=document.createElement('option');option.value=r.id;option.textContent=(r.bol_number||'—')+' — '+(r.supplier_name||'—')+' — '+new Date(r.created_at).toLocaleString();select.append(option)});
+  showMessage('recvFindMessage',recvDraftChoices.length?'':t('recvFindEmpty'),!recvDraftChoices.length);
+ }catch(err){showMessage('recvFindMessage',t('recvFindError')+(err.message||String(err)));}
+ finally{button.disabled=false;}
+}
+$('recvFindRefresh').onclick=recvFindDrafts;
+$('recvFindLoad').onclick=async()=>{
+ const id=$('recvFindSelect').value;
+ if(!id){showMessage('recvFindMessage',t('recvFindChoose'));return;}
+ if(!client||!['admin','supervisor'].includes(currentRole)||recvBusy)return;
+ if(!confirm(t('recvFindDiscard')))return;
+ const button=$('recvFindLoad');button.disabled=true;recvBusy=true;recvSyncPost();
+ showMessage('recvFindMessage',t('recvFindLoadingOne'),true);
+ try{
+  const {data:r,error:re}=await client.from('receivings').select('id,bol_number,supplier_name,received_date,status').eq('id',id).single();
+  if(re)throw re;
+  if(r.status!=='draft')throw new Error('Receiving is no longer a draft.');
+  const {data:items,error:ie}=await client.from('receiving_items').select('id,product_id,total_quantity,total_packages,declared_weight_lb').eq('receiving_id',id);
+  if(ie)throw ie;
+  if(!items?.length)throw new Error('Receiving has no items.');
+  const {data:allocations,error:ae}=await client.from('receiving_allocations').select('receiving_item_id,location_id,quantity,packages,weight_lb').in('receiving_item_id',items.map(i=>i.id));
+  if(ae)throw ae;
+  const mapped=items.map(i=>({key:recvUid(),product:i.product_id,quantity:String(i.total_quantity),packages:String(i.total_packages??0),weight:i.declared_weight_lb==null?'':String(i.declared_weight_lb),allocations:(allocations||[]).filter(a=>a.receiving_item_id===i.id).map(a=>({key:recvUid(),rack:a.location_id,quantity:String(a.quantity),packages:String(a.packages??0),weight:a.weight_lb==null?'':String(a.weight_lb)}))}));
+  // Validate references against the currently loaded catalogs before allowing posting.
+  if(mapped.some(i=>!cache.products.some(p=>p.id===i.product&&p.active!==false)||i.allocations.some(a=>!cache.warehouse_locations.some(l=>l.id===a.rack&&l.active!==false))))throw new Error('A product or Rack in this draft is missing or inactive.');
+  $('recvBol').value=r.bol_number||'';$('recvSupplier').value=r.supplier_name||'';$('recvDate').value=r.received_date||'';
+  receivingItems=mapped;recvRender();
+  recvSavedId=id;recvDirty=false;
+  if(!recvCheck()){recvDirty=true;recvSavedId=null;throw new Error('The saved draft did not pass form validation.');}
+  showMessage('recvFindMessage',t('recvFindDone'),true);
+  showMessage('recvMessage',t('recvFindDone'),true);
+ }catch(err){recvDirty=true;recvSavedId=null;showMessage('recvFindMessage',t('recvFindError')+(err.message||String(err)));}
+ finally{recvBusy=false;button.disabled=false;recvSyncPost();}
+};
+// Populate the draft list on entering Receiving, after session/cache are loaded.
+const recvFindPriorRender=render;
+render=function(){recvFindPriorRender();$('recvLookup').classList.toggle('hidden',!['admin','supervisor'].includes(currentRole));};
+const recvFindNav=document.querySelector('[data-view="receiving"]');
+recvFindNav.addEventListener('click',()=>{if(['admin','supervisor'].includes(currentRole))recvFindDrafts();});
  // Final bilingual labels are now available.
 translate();
 recvSyncPost();
