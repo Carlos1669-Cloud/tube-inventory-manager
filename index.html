@@ -377,13 +377,41 @@ const prOriginalRender=render;render=function(){prOriginalRender();if(activeView
 const prOriginalTranslate=translate;translate=function(){prOriginalTranslate();if(precutReportLoaded){prFilters();prRender()}};
 const prOriginalLoad=load;load=async function(){await prOriginalLoad();if(precutReportLoaded){precutReportLoaded=false;if(activeView==='precutReport')await prLoad()}};
 
-// Supabase Receiving draft: atomic server-side save; posting remains disabled.
+// Supabase Receiving: save draft, then explicitly post the exact saved UUID.
 Object.assign(tr.es,{receivingDemo:'Borradores: se guardan en Supabase. Contabilizar inventario permanece bloqueado.',recvSavedCloud:'Borrador guardado en Supabase. ID: ',recvSavingCloud:'Guardando borrador en Supabase…'});
 Object.assign(tr.en,{receivingDemo:'Drafts are saved in Supabase. Inventory posting remains disabled.',recvSavedCloud:'Draft saved in Supabase. ID: ',recvSavingCloud:'Saving draft to Supabase…'});
+let recvSavedId=null,recvDirty=true,recvBusy=false;
+Object.assign(tr.es,{recvPostConfirm:'¿Contabilizar esta recepción en el inventario real? Esta operación sumará tubos a Warehouse y Racks y registrará movimientos. No se puede deshacer desde este formulario.',recvPostBusy:'Contabilizando Receiving…',recvPostDone:'Recepción contabilizada correctamente. Inventario actualizado. ID: ',recvPostError:'No se pudo contabilizar: ',recvPostFirst:'Primero guarda el borrador en Supabase. Si cambias algo, guárdalo nuevamente.',recvSavedEdit:'Cambios sin guardar. Vuelve a guardar el borrador antes de contabilizar.'});
+Object.assign(tr.en,{recvPostConfirm:'Post this receiving to real inventory? This will add tubes to Warehouse and Racks and record movements. It cannot be undone from this form.',recvPostBusy:'Posting Receiving…',recvPostDone:'Receiving posted successfully. Inventory updated. ID: ',recvPostError:'Unable to post: ',recvPostFirst:'First save the draft in Supabase. If you edit anything, save again.',recvSavedEdit:'Unsaved changes. Save the draft again before posting.'});
+function recvSyncPost(){const b=$('recvPost');b.disabled=recvBusy||recvDirty||!recvSavedId||!['admin','supervisor'].includes(currentRole);b.title=b.disabled?t('recvPostFirst'):'';}
+function recvMarkDirty(){if(recvBusy)return;recvDirty=true;recvSavedId=null;recvSyncPost();}
+// Any edit to the receiving form invalidates the previously saved UUID.
+$('receivingEditor').addEventListener('input',e=>{if(e.target.matches('input,select,textarea'))recvMarkDirty()});
+$('receivingEditor').addEventListener('change',e=>{if(e.target.matches('input,select,textarea'))recvMarkDirty()});
+$('recvAddItem').addEventListener('click',recvMarkDirty);
+$('recvItems').addEventListener('click',e=>{if(e.target.closest('button'))recvMarkDirty()});
+$('recvReset').addEventListener('click',recvMarkDirty);
+$('recvCancel').addEventListener('click',recvMarkDirty);
+$('recvPost').onclick=async()=>{
+ if(recvBusy||recvDirty||!recvSavedId){showMessage('recvMessage',t('recvPostFirst'));return;}
+ if(!client||!['admin','supervisor'].includes(currentRole))return;
+ if(!confirm(t('recvPostConfirm')))return;
+ const id=recvSavedId;
+ recvBusy=true;recvSyncPost();$('recvSaveDraft').disabled=true;
+ showMessage('recvMessage',t('recvPostBusy'),true);
+ try{
+   const {error}=await client.rpc('post_warehouse_receiving',{p_receiving_id:id});
+   if(error)throw error;
+   recvSavedId=null;recvDirty=true;
+   showMessage('recvMessage',t('recvPostDone')+id,true);
+   await load();
+ }catch(err){showMessage('recvMessage',t('recvPostError')+(err.message||String(err)));}
+ finally{recvBusy=false;$('recvSaveDraft').disabled=false;recvSyncPost();}
+};
 $('recvSaveDraft').onclick=async()=>{
  if(!client||!['admin','supervisor'].includes(currentRole))return;
  if(!recvCheck())return;
- const button=$('recvSaveDraft');button.disabled=true;
+ const button=$('recvSaveDraft');button.disabled=true;recvBusy=true;recvSyncPost();
  showMessage('recvMessage',t('recvSavingCloud'),true);
  try{
    const payload=receivingItems.map(x=>({
@@ -396,10 +424,15 @@ $('recvSaveDraft').onclick=async()=>{
    });
    if(error)throw error;
    showMessage('recvMessage',t('recvSavedCloud')+data,true);
-   // Keep the form visible for review. Saving again creates another draft.
+   // Keep the saved UUID tied to this exact form version.
+   if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(data||'')))throw new Error('Unexpected receiving ID');
+   recvSavedId=String(data);
+   recvDirty=false;
+   recvSyncPost();
  }catch(err){showMessage('recvMessage',err.message||String(err));}
- finally{button.disabled=false;}
+ finally{recvBusy=false;button.disabled=false;recvSyncPost();}
 };
  // Final bilingual labels are now available.
 translate();
+recvSyncPost();
 </script></body></html>
