@@ -376,6 +376,30 @@ $('prExcel').onclick=async()=>{try{const data=prFiltered();if(!data.length){show
 const prOriginalRender=render;render=function(){prOriginalRender();if(activeView==='precutReport'){if(!precutReportLoaded)prLoad();else prRender()}};
 const prOriginalTranslate=translate;translate=function(){prOriginalTranslate();if(precutReportLoaded){prFilters();prRender()}};
 const prOriginalLoad=load;load=async function(){await prOriginalLoad();if(precutReportLoaded){precutReportLoaded=false;if(activeView==='precutReport')await prLoad()}};
+
+// Supabase Receiving draft: atomic server-side save; posting remains disabled.
+Object.assign(tr.es,{receivingDemo:'Borradores: se guardan en Supabase. Contabilizar inventario permanece bloqueado.',recvSavedCloud:'Borrador guardado en Supabase. ID: ',recvSavingCloud:'Guardando borrador en Supabase…'});
+Object.assign(tr.en,{receivingDemo:'Drafts are saved in Supabase. Inventory posting remains disabled.',recvSavedCloud:'Draft saved in Supabase. ID: ',recvSavingCloud:'Saving draft to Supabase…'});
+$('recvSaveDraft').onclick=async()=>{
+ if(!client||!['admin','supervisor'].includes(currentRole))return;
+ if(!recvCheck())return;
+ const button=$('recvSaveDraft');button.disabled=true;
+ showMessage('recvMessage',t('recvSavingCloud'),true);
+ try{
+   const payload=receivingItems.map(x=>({
+     product_id:x.product,quantity:Number(x.quantity),packages:Number(x.packages),weight:x.weight===''?null:Number(x.weight),
+     allocations:x.allocations.map(a=>({location_id:a.rack,quantity:Number(a.quantity),packages:Number(a.packages),weight:a.weight===''?null:Number(a.weight)}))
+   }));
+   const {data,error}=await client.rpc('save_warehouse_receiving_draft',{
+     p_bol_number:$('recvBol').value.trim(),p_supplier_name:$('recvSupplier').value.trim(),
+     p_received_date:$('recvDate').value||null,p_items:payload
+   });
+   if(error)throw error;
+   showMessage('recvMessage',t('recvSavedCloud')+data,true);
+   // Keep the form visible for review. Saving again creates another draft.
+ }catch(err){showMessage('recvMessage',err.message||String(err));}
+ finally{button.disabled=false;}
+};
  // Final bilingual labels are now available.
 translate();
 </script></body></html>
