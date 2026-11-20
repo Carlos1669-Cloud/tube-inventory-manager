@@ -59,7 +59,7 @@
 <div class="summary"><div><span data-i="warehouseBalance">Balance Warehouse (lb)</span><h2 id="whTotal">—</h2></div><div><span data-i="warehouseRows">Productos mostrados</span><h2 id="whCount">—</h2></div><div><span data-i="warehouseRaw">RAW (lb)</span><h2 id="whRaw">—</h2></div><div><span data-i="warehousePrecut">PRECUT (lb)</span><h2 id="whPrecut">—</h2></div></div>
 <div class="scroll"><table><thead><tr><th>SKU</th><th data-i="warehouseItem">Item Number</th><th data-i="productionType">Tipo</th><th data-i="supplier">Proveedor</th><th>OD</th><th>Wall</th><th data-i="length">Largo</th><th data-i="material">Material</th><th data-i="department">Departamento</th><th data-i="warehouseBalance">Balance (lb)</th></tr></thead><tbody id="whBody"></tbody></table></div>
 <p class="muted" data-i="warehouseHistorical">Los movimientos históricos a Producción ya están reflejados en el balance importado cuando así consta en el Excel. No se descuentan nuevamente. Este reporte no permite modificar existencias.</p>
-</div><div id="departmentsView" class="panel view hidden"><h2 data-i="manageDepartments">Administrar departamentos</h2><p class="muted" data-i="deptNote">Solo los administradores pueden añadir departamentos. Los departamentos existentes se muestran a continuación.</p><form id="departmentForm"><label for="departmentName" data-i="newDepartment">Nombre del nuevo departamento</label><input id="departmentName" type="text" maxlength="100" autocomplete="off" required><button type="submit" id="departmentSubmit" data-i="addDepartment">Añadir departamento</button><button type="button" id="deptClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="deptCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="departmentMessage" role="status" class="alert hidden"></p><h3 data-i="departmentList">Departamentos registrados</h3><div class="scroll"><table><thead><tr><th data-i="department">Departamento</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="departmentsBody"></tbody></table></div></div><div id="locationsView" class="panel view hidden"><h2 data-i="manageLocations">Ubicaciones del almacén</h2><p class="muted" data-i="locationNote">Registra racks, bins o áreas manualmente.</p><form id="locationForm"><label for="locationName" data-i="locationName">Nombre de ubicación</label><input id="locationName" maxlength="100" required placeholder="Rack 2, Bin A-1, Area Receiving"><label for="locationType" data-i="locationType">Tipo de ubicación</label><select id="locationType"><option value="Rack">Rack</option><option value="Bin">Bin</option><option value="Location">Location / Área</option></select><button id="locationSubmit" type="submit" data-i="addLocation">Añadir ubicación</button><button type="button" id="locationClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="locationCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="locationMessage" class="alert hidden" role="status"></p><h3 data-i="locationList">Ubicaciones registradas</h3><div class="scroll"><table><thead><tr><th data-i="locationName">Ubicación</th><th data-i="locationType">Tipo</th><th data-i="status">Estado</th></tr></thead><tbody id="locationsBody"></tbody></table></div></div></section>
+</div><div id="departmentsView" class="panel view hidden"><h2 data-i="manageDepartments">Administrar departamentos</h2><p class="muted" data-i="deptNote">Solo los administradores pueden añadir departamentos. Los departamentos existentes se muestran a continuación.</p><form id="departmentForm"><label for="departmentName" data-i="newDepartment">Nombre del nuevo departamento</label><input id="departmentName" type="text" maxlength="100" autocomplete="off" required><button type="submit" id="departmentSubmit" data-i="addDepartment">Añadir departamento</button><button type="button" id="deptClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="deptCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="departmentMessage" role="status" class="alert hidden"></p><p class="muted" data-i="admin14Help">Editar, desactivar o recuperar registros. No se borran datos del historial.</p><h3 data-i="departmentList">Departamentos registrados</h3><div class="scroll"><table><thead><tr><th data-i="department">Departamento</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="departmentsBody"></tbody></table></div></div><div id="locationsView" class="panel view hidden"><h2 data-i="manageLocations">Ubicaciones del almacén</h2><p class="muted" data-i="locationNote">Registra racks, bins o áreas manualmente.</p><form id="locationForm"><label for="locationName" data-i="locationName">Nombre de ubicación</label><input id="locationName" maxlength="100" required placeholder="Rack 2, Bin A-1, Area Receiving"><label for="locationType" data-i="locationType">Tipo de ubicación</label><select id="locationType"><option value="Rack">Rack</option><option value="Bin">Bin</option><option value="Location">Location / Área</option></select><button id="locationSubmit" type="submit" data-i="addLocation">Añadir ubicación</button><button type="button" id="locationClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="locationCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="locationMessage" class="alert hidden" role="status"></p><h3 data-i="locationList">Ubicaciones registradas</h3><div class="scroll"><table><thead><tr><th data-i="locationName">Ubicación</th><th data-i="locationType">Tipo</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="locationsBody"></tbody></table></div></div></section>
 </main><footer>Tube Inventory Manager · Built By Carlos Miranda</footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script><script>
 'use strict';
 const SUPABASE_URL='https://dzpbqtfgukzhiirpjqtn.supabase.co';
@@ -580,6 +580,90 @@ $('whExcel').onclick=()=>{try{
  const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,sheet,'Warehouse LB');XLSX.writeFile(book,'warehouse_building3_libras_'+new Date().toISOString().slice(0,10)+'.xlsx');
  }catch(e){showMessage('whMessage',t('prExportError')+(e.message||String(e)));}};
 const whPriorTranslate=translate;translate=function(){whPriorTranslate();if(activeView==='warehouseReport'&&whLoaded){whFilters();whRender();}};
+
+
+// BLOCK 14: admin correction controls. All writes go through admin_manage_inventory_record RPC.
+Object.assign(tr.es,{
+ admin14Help:'Como administrador puedes editar, desactivar o recuperar. Los registros con existencias no se pueden desactivar. No se borran movimientos.',
+ admin14Edit:'Editar',admin14Prompt:'Escribe el nuevo nombre o SKU:',admin14EditLocation:'Nuevo nombre del rack / bin / ubicación:',
+ admin14Type:'Tipo de ubicación (Rack, Bin o Location):',admin14Status:'Cambiar estado',admin14Confirm:'¿Confirmas esta operación?',
+ admin14Success:'Cambio aplicado. El historial se conserva.',admin14Failed:'No se pudo completar: ',
+ admin14Missing:'Esta función requiere instalar primero el archivo SQL del Bloque 14 en Supabase.',
+ admin14NoDelete:'No se borra permanentemente: se desactiva para permitir recuperación.',
+ admin14Busy:'Procesando…'
+});
+Object.assign(tr.en,{
+ admin14Help:'Admins can edit, deactivate or restore records. Records with stock cannot be deactivated. Movements are never deleted.',
+ admin14Edit:'Edit',admin14Prompt:'Enter new name or SKU:',admin14EditLocation:'New rack / bin / location name:',
+ admin14Type:'Location type (Rack, Bin or Location):',admin14Status:'Change status',admin14Confirm:'Confirm this operation?',
+ admin14Success:'Change saved. History is preserved.',admin14Failed:'Could not complete: ',
+ admin14Missing:'This feature requires installing the Block 14 SQL file in Supabase first.',
+ admin14NoDelete:'Records are archived, not permanently deleted, so they can be restored.',
+ admin14Busy:'Working…'
+});
+function admin14Button(title, callback){
+ const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=title;
+ b.style.marginRight='6px';b.addEventListener('click',async()=>{
+   if(currentRole!=='admin')return;
+   b.disabled=true;const previous=b.textContent;b.textContent=t('admin14Busy');
+   try{await callback();}finally{b.disabled=false;b.textContent=previous;}
+ });return b;
+}
+async function admin14Run(table,record,action,newValue=null,newType=null){
+ if(!client||currentRole!=='admin')return;
+ const name=record.sku||record.name||record.id;
+ const label=action==='rename'?t('admin14Edit'):(action==='deactivate'?t('deactivate'):t('reactivate'));
+ if(!window.confirm(t('admin14Confirm')+'\n'+label+': '+name+(newValue?' → '+newValue:'')))return;
+ try{
+  const {error}=await client.rpc('admin_manage_inventory_record',{
+    p_table:table,p_record_id:record.id,p_action:action,p_value:newValue,p_location_type:newType
+  });
+  if(error)throw error;
+  await load();showMessage('appMessage',t('admin14Success'),true);
+ }catch(err){
+  let message=err.message||String(err);
+  if(/admin_manage_inventory_record|could not find the function|PGRST202/i.test(message))message=t('admin14Missing');
+  showMessage('appMessage',t('admin14Failed')+message);
+ }
+}
+function admin14Actions(table,record){
+ const cell=document.createElement('td');
+ if(currentRole!=='admin'){cell.textContent='—';return cell;}
+ cell.append(admin14Button(t('admin14Edit'),async()=>{
+   const value=window.prompt(table==='warehouse_locations'?t('admin14EditLocation'):t('admin14Prompt'),record.sku||record.name||'');
+   if(value===null||!value.trim())return;
+   let type=null;
+   if(table==='warehouse_locations'){
+      const proposed=window.prompt(t('admin14Type'),record.location_type||'Rack');
+      if(proposed===null)return;
+      const valid=['Rack','Bin','Location'];
+      type=valid.find(v=>v.toLowerCase()===proposed.trim().toLowerCase());
+      if(!type){showMessage('appMessage','Tipo inválido / Invalid type: Rack, Bin, Location');return;}
+   }
+   await admin14Run(table,record,'rename',value.trim(),type);
+ }));
+ cell.append(admin14Button(record.active===false?t('reactivate'):t('deactivate'),async()=>{
+   await admin14Run(table,record,record.active===false?'reactivate':'deactivate');
+ }));
+ return cell;
+}
+// Override only the admin table renderers; the rest of Block 13 remains untouched.
+renderDepartmentList=function(){
+ const body=$('departmentsBody');body.replaceChildren();
+ const arr=cache.departments.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ if(!arr.length){const r=document.createElement('tr'),c=td(t('empty'));c.colSpan=3;r.append(c);body.append(r);return;}
+ arr.forEach(item=>{const r=document.createElement('tr');r.append(td(item.name),td(item.active===false?t('inactive'):t('active')),admin14Actions('departments',item));body.append(r);});
+};
+renderLocationList=function(){
+ const body=$('locationsBody');body.replaceChildren();
+ const arr=(cache.warehouse_locations||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ if(!arr.length){const r=document.createElement('tr'),c=td(t('empty'));c.colSpan=4;r.append(c);body.append(r);return;}
+ arr.forEach(item=>{const r=document.createElement('tr');r.append(td(item.name),td(item.location_type),td(item.active===false?t('inactive'):t('active')),admin14Actions('warehouse_locations',item));body.append(r);});
+};
+renderProductActions=function(){
+ const trs=Array.from($('productsBody').querySelectorAll('tr'));
+ cache.products.forEach((item,i)=>{if(trs[i])trs[i].append(admin14Actions('products',item));});
+};
 
  // Final bilingual labels are now available.
 translate();
