@@ -2,7 +2,7 @@
 :root{font-family:system-ui,Arial,sans-serif;color:#1a2a38;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:#173c5d;color:white;padding:20px}header .top{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:1.55rem;margin:0}header p{margin:6px 0 0}main{max-width:1100px;margin:24px auto;padding:0 16px}.panel{background:white;border:1px solid #d6e1eb;border-radius:14px;padding:20px;margin-bottom:16px}label{display:block;font-weight:650;margin:12px 0 6px}input,select{padding:11px;border:1px solid #b8c7d5;border-radius:8px;font:inherit;max-width:100%;width:100%}header select{width:auto;color:#17232d}button{background:#176b9c;color:white;border:0;border-radius:8px;padding:11px 16px;font:inherit;cursor:pointer;margin:8px 8px 0 0}button:disabled{opacity:.6;cursor:not-allowed}.secondary{background:#e8eff5;color:#173c5d}.muted{color:#5b6e7b}.hidden{display:none!important}.nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.nav button{margin:0}.nav button.active{background:#123b5d}table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8ee}th{background:#f1f6fa}.scroll{overflow:auto}.alert{background:#fff5e3;padding:12px;border-radius:8px;margin-top:12px;white-space:pre-wrap}.ok{background:#e6f5ea}.summary{display:flex;gap:12px;flex-wrap:wrap}.summary>div{background:#eff5fa;border-radius:10px;padding:14px;flex:1;min-width:160px}footer{text-align:center;padding:22px;color:#526779}small{font-size:.85rem}
 </style></head><body><header><div class="top"><div><h1>Tube Inventory Manager</h1><p>Built By Carlos Miranda</p></div><div><label for="lang" data-i="language">Idioma / Language</label><select id="lang"><option value="es">Español</option><option value="en">English</option></select></div></div></header><main>
 <section class="panel" id="loginPanel"><h2 data-i="login">Iniciar sesión</h2><p class="muted" data-i="loginNote">Utiliza el correo y contraseña de tu cuenta de Supabase Authentication.</p><form id="loginForm"><label for="email" data-i="email">Correo electrónico</label><input id="email" type="email" required autocomplete="username"><label for="password" data-i="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" data-i="loginButton">Entrar</button></form><p id="loginMessage" role="status" class="alert hidden"></p></section>
-<section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div><div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
+<section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div><div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
 <div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><div class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
 <div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
 <div id="measureCatalog" class="panel hidden" style="background:#f8fafc">
@@ -59,6 +59,23 @@
 <div class="summary"><div><span data-i="warehouseBalance">Balance Warehouse (lb)</span><h2 id="whTotal">—</h2></div><div><span data-i="warehouseRows">Productos mostrados</span><h2 id="whCount">—</h2></div><div><span data-i="warehouseRaw">RAW (lb)</span><h2 id="whRaw">—</h2></div><div><span data-i="warehousePrecut">PRECUT (lb)</span><h2 id="whPrecut">—</h2></div></div>
 <div class="scroll"><table><thead><tr><th>SKU</th><th data-i="warehouseItem">Item Number</th><th data-i="productionType">Tipo</th><th data-i="supplier">Proveedor</th><th>OD</th><th>Wall</th><th data-i="length">Largo</th><th data-i="material">Material</th><th data-i="department">Departamento</th><th data-i="warehouseBalance">Balance (lb)</th></tr></thead><tbody id="whBody"></tbody></table></div>
 <p class="muted" data-i="warehouseHistorical">Los movimientos históricos a Producción ya están reflejados en el balance importado cuando así consta en el Excel. No se descuentan nuevamente. Este reporte no permite modificar existencias.</p>
+</div><div id="correctionsView" class="panel view hidden">
+<h2 data-i="b15Title">Correcciones — Administrador</h2>
+<p class="alert" data-i="b15Help">Los totales de Warehouse y las asignaciones manuales a racks son distintos. Una asignación no añade inventario al total. Las correcciones quedan auditadas.</p>
+<form id="b15Form">
+<label for="b15Kind" data-i="b15KindLabel">Tipo de corrección</label><select id="b15Kind"><option value="total_tubes" data-i="b15TotalTubes">Total de tubos Warehouse</option><option value="total_weight" data-i="b15TotalWeight">Total de libras Warehouse</option><option value="rack_assignment" data-i="b15RackAssignment">Asignación manual a Rack / Bin</option></select>
+<label for="b15Product">SKU</label><select id="b15Product" required></select>
+<div id="b15RackRow" class="hidden"><label for="b15Rack" data-i="b15RackLabel">Rack / Bin</label><select id="b15Rack"></select></div>
+<p id="b15Current" class="muted" role="status"></p>
+<div id="b15QtyRow"><label for="b15Qty" data-i="b15Qty">Nuevo total de tubos</label><input id="b15Qty" type="number" min="0" step="1"></div>
+<div id="b15PackRow" class="hidden"><label for="b15Packages" data-i="b15Packages">Paquetes asignados</label><input id="b15Packages" type="number" min="0" step="1"></div>
+<div id="b15WeightRow" class="hidden"><label for="b15Weight" data-i="b15Weight">Libras (lb)</label><input id="b15Weight" type="number" min="0" step="any"></div>
+<label for="b15Reason" data-i="b15Reason">Motivo de corrección (obligatorio)</label><input id="b15Reason" maxlength="500" required>
+<label for="b15Reference" data-i="b15Reference">Referencia (opcional)</label><input id="b15Reference" maxlength="120">
+<button type="submit" id="b15Save" data-i="b15Save">Confirmar corrección</button><button type="button" class="secondary" id="b15Cancel" data-i="cancel">Cancelar</button>
+</form><p class="alert hidden" id="b15Message" role="status"></p>
+<h3 data-i="b15History">Historial de correcciones</h3><button type="button" class="secondary" id="b15Reload" data-i="refresh">Actualizar datos</button>
+<div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="reason">Motivo</th><th data-i="b15Change">Antes → Después</th></tr></thead><tbody id="b15Audit"></tbody></table></div>
 </div><div id="departmentsView" class="panel view hidden"><h2 data-i="manageDepartments">Administrar departamentos</h2><p class="muted" data-i="deptNote">Solo los administradores pueden añadir departamentos. Los departamentos existentes se muestran a continuación.</p><form id="departmentForm"><label for="departmentName" data-i="newDepartment">Nombre del nuevo departamento</label><input id="departmentName" type="text" maxlength="100" autocomplete="off" required><button type="submit" id="departmentSubmit" data-i="addDepartment">Añadir departamento</button><button type="button" id="deptClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="deptCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="departmentMessage" role="status" class="alert hidden"></p><p class="muted" data-i="admin14Help">Editar, desactivar o recuperar registros. No se borran datos del historial.</p><h3 data-i="departmentList">Departamentos registrados</h3><div class="scroll"><table><thead><tr><th data-i="department">Departamento</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="departmentsBody"></tbody></table></div></div><div id="locationsView" class="panel view hidden"><h2 data-i="manageLocations">Ubicaciones del almacén</h2><p class="muted" data-i="locationNote">Registra racks, bins o áreas manualmente.</p><form id="locationForm"><label for="locationName" data-i="locationName">Nombre de ubicación</label><input id="locationName" maxlength="100" required placeholder="Rack 2, Bin A-1, Area Receiving"><label for="locationType" data-i="locationType">Tipo de ubicación</label><select id="locationType"><option value="Rack">Rack</option><option value="Bin">Bin</option><option value="Location">Location / Área</option></select><button id="locationSubmit" type="submit" data-i="addLocation">Añadir ubicación</button><button type="button" id="locationClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="locationCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="locationMessage" class="alert hidden" role="status"></p><h3 data-i="locationList">Ubicaciones registradas</h3><div class="scroll"><table><thead><tr><th data-i="locationName">Ubicación</th><th data-i="locationType">Tipo</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="locationsBody"></tbody></table></div></div></section>
 </main><footer>Tube Inventory Manager · Built By Carlos Miranda</footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script><script>
 'use strict';
@@ -668,4 +685,85 @@ renderProductActions=function(){
  // Final bilingual labels are now available.
 translate();
 recvSyncPost();
+
+// === BLOCK 15: ADMIN WAREHOUSE CORRECTIONS (no hard deletion) ===
+Object.assign(tr.es,{b15Title:'Correcciones — Administrador',b15Help:'Warehouse total y distribución entre Racks son independientes. Asignar a Rack NO suma al total. Guarda cada corrección con motivo; los movimientos anteriores permanecen intactos.',b15KindLabel:'Tipo de corrección',b15TotalTubes:'Total de tubos Warehouse',b15TotalWeight:'Total de libras Warehouse',b15RackAssignment:'Asignación manual a Rack / Bin',b15RackLabel:'Rack / Bin',b15Qty:'Tubos',b15Packages:'Paquetes',b15Weight:'Libras (lb)',b15Reason:'Motivo de corrección (mínimo 5 caracteres)',b15Reference:'Referencia (opcional)',b15Save:'Confirmar corrección',b15History:'Historial de correcciones',b15Change:'Antes → Después',b15Missing:'Selecciona producto y los valores requeridos.',b15Invalid:'Valor inválido. Verifica tubos, paquetes, libras y motivo (mínimo 5 caracteres).',b15Confirm:'Esta operación CAMBIA inventario real y guarda auditoría. ¿Confirmas?',b15Success:'Corrección registrada. ID: ',b15ReadError:'No se pudieron leer los balances: ',b15Current:'Valores actuales',b15NoExisting:'No existe un balance actual para este producto.',b15Unavailable:'Bloque 15: instala primero su SQL en Supabase.',b15NotYet:'No incluye reversión de recepciones contabilizadas ni movimientos históricos.'});
+Object.assign(tr.en,{b15Title:'Corrections — Administrator',b15Help:'Warehouse totals and Rack allocations are separate. Rack assignment does NOT add to the total. Every correction requires a reason; original movements remain intact.',b15KindLabel:'Correction type',b15TotalTubes:'Warehouse tube total',b15TotalWeight:'Warehouse weight total',b15RackAssignment:'Manual Rack / Bin assignment',b15RackLabel:'Rack / Bin',b15Qty:'Tubes',b15Packages:'Packages',b15Weight:'Pounds (lb)',b15Reason:'Correction reason (minimum 5 characters)',b15Reference:'Reference (optional)',b15Save:'Confirm correction',b15History:'Correction history',b15Change:'Before → After',b15Missing:'Select a product and enter all required values.',b15Invalid:'Invalid value. Check tubes, packages, weight, and reason (minimum 5 characters).',b15Confirm:'This WILL CHANGE live inventory and record an audit. Confirm?',b15Success:'Correction recorded. ID: ',b15ReadError:'Unable to load balances: ',b15Current:'Current values',b15NoExisting:'No balance exists for this product.',b15Unavailable:'Install Block 15 SQL in Supabase first.',b15NotYet:'Reversal of posted receipts and historical movements is not available yet.'});
+let b15Balances={stock:[],weights:[],racks:[],audit:[]};
+const b15Warehouse=()=>cache.departments.find(x=>(x.name||'').trim().toLowerCase()==='warehouse');
+function b15Options(){
+ if(currentRole!=='admin')return;
+ setOptions('b15Product',cache.products,p=>p.sku||p.id);
+ setOptions('b15Rack',(cache.warehouse_locations||[]).filter(l=>l.active!==false),l=>l.name||l.id);
+}
+function b15Mode(){
+ const kind=$('b15Kind').value;
+ $('b15RackRow').classList.toggle('hidden',kind!=='rack_assignment');
+ $('b15PackRow').classList.toggle('hidden',kind!=='rack_assignment');
+ $('b15QtyRow').classList.toggle('hidden',kind==='total_weight');
+ $('b15WeightRow').classList.toggle('hidden',kind==='total_tubes');
+ b15Current();
+}
+function b15Current(){
+ const product=$('b15Product').value,rack=$('b15Rack').value,kind=$('b15Kind').value;
+ const match=x=>x.product_id===product&&x.department_id===b15Warehouse()?.id;
+ const s=b15Balances.stock.find(match),w=b15Balances.weights.find(match);
+ const r=b15Balances.racks.find(x=>match(x)&&x.location_id===rack);
+ const assignedQty=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.quantity||0),0);
+ const assignedLb=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.weight_lb||0),0);
+ let msg='';
+ if(kind==='total_tubes')msg=`${t('b15Current')}: ${s?.quantity??'—'} tubes; assigned: ${assignedQty}`;
+ else if(kind==='total_weight')msg=`${t('b15Current')}: ${w?.weight_lb??'—'} lb; assigned: ${assignedLb} lb`;
+ else msg=`${t('b15Current')}: ${r?.quantity??0} tubes, ${r?.packages??0} packages, ${r?.weight_lb??0} lb. Total Warehouse: ${s?.quantity??'—'} tubes, ${w?.weight_lb??'—'} lb`;
+ $('b15Current').textContent=msg;
+}
+async function b15Load(){
+ if(currentRole!=='admin'||!client)return;
+ const wh=b15Warehouse();if(!wh)return;
+ try{
+  const specs=[['stock','product_id,department_id,quantity'],['inventory_weight_balances','product_id,department_id,weight_lb'],['stock_locations','product_id,department_id,location_id,quantity,packages,weight_lb'],['inventory_correction_audit','id,changed_at,product_id,correction_type,previous_values,new_values,reason']];
+  const all=await Promise.all(specs.map(async([name,columns])=>{
+   let q=client.from(name).select(columns);if(name==='inventory_correction_audit')q=q.order('changed_at',{ascending:false}).limit(100);else q=q.eq('department_id',wh.id);
+   const {data,error}=await q;if(error)throw error;return data||[];
+  }));
+  ['stock','weights','racks','audit'].forEach((key,i)=>b15Balances[key]=all[i]);
+  const body=$('b15Audit');body.replaceChildren();
+  for(const a of b15Balances.audit){const row=document.createElement('tr');row.append(td(new Date(a.changed_at).toLocaleString()),td(cache.products.find(p=>p.id===a.product_id)?.sku||a.product_id),td(a.correction_type),td(a.reason),td(JSON.stringify(a.previous_values)+' → '+JSON.stringify(a.new_values)));body.append(row);}
+  b15Current();showMessage('b15Message','');
+ }catch(err){showMessage('b15Message',t('b15ReadError')+(err.message||String(err)));}
+}
+$('b15Kind').onchange=b15Mode;$('b15Product').onchange=b15Current;$('b15Rack').onchange=b15Current;
+$('b15Reload').onclick=b15Load;
+$('b15Cancel').onclick=()=>{$('b15Form').reset();b15Options();b15Mode();showMessage('b15Message',t('cancelled'),true)};
+$('b15Form').onsubmit=async e=>{
+ e.preventDefault();if(currentRole!=='admin'||!client)return;
+ const kind=$('b15Kind').value,product=$('b15Product').value,reason=$('b15Reason').value.trim();
+ const qty=kind==='total_weight'?null:Number($('b15Qty').value),packages=kind==='rack_assignment'?Number($('b15Packages').value):null;
+ const weight=kind==='total_tubes'?null:Number($('b15Weight').value);
+ const validInteger=n=>Number.isSafeInteger(n)&&n>=0;
+ if(!product||(kind==='rack_assignment'&&!$('b15Rack').value)){showMessage('b15Message',t('b15Missing'));return;}
+ if(reason.length<5||reason.length>500||(qty!==null&&!validInteger(qty))||(packages!==null&&!validInteger(packages))||(weight!==null&&(!Number.isFinite(weight)||weight<0))||
+  (kind!=='total_weight'&&$('b15Qty').value.trim()==='')||(kind!=='total_tubes'&&$('b15Weight').value.trim()==='')||(kind==='rack_assignment'&&$('b15Packages').value.trim()==='')){
+  showMessage('b15Message',t('b15Invalid'));return;
+ }
+ if(!window.confirm(t('b15Confirm')+'\n'+(cache.products.find(p=>p.id===product)?.sku||product)+'\n'+kind+'\n'+reason))return;
+ const btn=$('b15Save');btn.disabled=true;
+ try{
+  const {data,error}=await client.rpc('admin_correct_warehouse_inventory',{
+   p_product_id:product,p_kind:kind,p_quantity:qty,p_packages:packages,p_weight_lb:weight,
+   p_location_id:kind==='rack_assignment'?$('b15Rack').value:null,p_reason:reason,p_reference:$('b15Reference').value.trim()||null
+  });
+  if(error)throw error;
+  await load();await b15Load();$('b15Reason').value='';$('b15Reference').value='';showMessage('b15Message',t('b15Success')+data,true);
+ }catch(err){const m=err.message||String(err);showMessage('b15Message',/PGRST202|could not find the function|admin_correct_warehouse_inventory/i.test(m)?t('b15Unavailable'):m)}
+ finally{btn.disabled=false;}
+};
+const b15PreviousRender=render;
+render=function(){b15PreviousRender();$('correctionsNav').classList.toggle('hidden',currentRole!=='admin');b15Options();};
+const b15PreviousSync=sync;
+sync=async function(){await b15PreviousSync();$('correctionsNav').classList.toggle('hidden',currentRole!=='admin');};
+$('correctionsNav').addEventListener('click',b15Load);
+// Block 15 features do not automatically change inventory when the page loads.
+
+translate();
 </script></body></html>
