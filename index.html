@@ -740,9 +740,11 @@ function b15Current(){
  const assignedQty=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.quantity||0),0);
  const assignedLb=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.weight_lb||0),0);
  let msg='';
- if(kind==='total_tubes')msg=`${t('b15Current')}: ${b15Number(s?.quantity)} tubes; assigned: ${b15Number(assignedQty)}`;
- else if(kind==='total_weight')msg=`${t('b15Current')}: ${b15Number(w?.weight_lb)} lb; assigned: ${b15Number(assignedLb)} lb`;
- else msg=`${t('b15Current')}: ${b15Number(r?.quantity??0)} tubes, ${b15Number(r?.packages??0)} packages, ${b15Number(r?.weight_lb??0)} lb. Total Warehouse: ${b15Number(s?.quantity)} tubes, ${b15Number(w?.weight_lb)} lb`;
+ const tubesLabel=lang==='es'?'tubos':'tubes', packagesLabel=lang==='es'?'paquetes':'packages';
+ const assignedLabel=lang==='es'?'asignados':'assigned';
+ if(kind==='total_tubes')msg=`${t('b15Current')}: ${b15Number(s?.quantity)} ${tubesLabel}; ${assignedLabel}: ${b15Number(assignedQty)}`;
+ else if(kind==='total_weight')msg=`${t('b15Current')}: ${b15Number(w?.weight_lb)} lb; ${assignedLabel}: ${b15Number(assignedLb)} lb`;
+ else msg=`${t('b15Current')}: ${b15Number(r?.quantity??0)} ${tubesLabel}, ${b15Number(r?.packages??0)} ${packagesLabel}, ${b15Number(r?.weight_lb??0)} lb. Total Warehouse: ${b15Number(s?.quantity)} ${tubesLabel}, ${b15Number(w?.weight_lb)} lb`;
  if(!w && product){
   if(kind==='total_weight')msg+=' — '+t('b15WeightUnregistered');
   if(kind==='rack_assignment')msg+=' — '+t('b15PendingRack');
@@ -837,6 +839,11 @@ render=function(){b15PreviousRender();$('correctionsNav').classList.toggle('hidd
 const b15PreviousSync=sync;
 sync=async function(){await b15PreviousSync();$('correctionsNav').classList.toggle('hidden',currentRole!=='admin');};
 $('correctionsNav').addEventListener('click',b15Load);
+// PATCH 06: Audit rows are constructed dynamically; re-render them whenever the language changes.
+// Static headings are translated by translate(), but these table cells also need refreshing.
+$('lang').addEventListener('change',()=>{
+ if(currentRole==='admin' && client){void b15Load();}
+});
 // Block 15 features do not automatically change inventory when the page loads.
 
 translate();
