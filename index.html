@@ -3,7 +3,1021 @@
 </style></head><body><header><div class="top"><div><h1>Tube Inventory Manager</h1><p>Built By Carlos Miranda</p></div><div><label for="lang" data-i="language">Idioma / Language</label><select id="lang"><option value="es">Español</option><option value="en">English</option></select></div></div></header><main>
 <section class="panel" id="loginPanel"><h2 data-i="login">Iniciar sesión</h2><p class="muted" data-i="loginNote">Utiliza el correo y contraseña de tu cuenta de Supabase Authentication.</p><form id="loginForm"><label for="email" data-i="email">Correo electrónico</label><input id="email" type="email" required autocomplete="username"><label for="password" data-i="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" data-i="loginButton">Entrar</button></form><p id="loginMessage" role="status" class="alert hidden"></p></section>
 <section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div><div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
+<div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><di<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tube Inventory Manager</title><style>
+:root{font-family:system-ui,Arial,sans-serif;color:#1a2a38;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:#173c5d;color:white;padding:20px}header .top{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:1.55rem;margin:0}header p{margin:6px 0 0}main{max-width:1100px;margin:24px auto;padding:0 16px}.panel{background:white;border:1px solid #d6e1eb;border-radius:14px;padding:20px;margin-bottom:16px}label{display:block;font-weight:650;margin:12px 0 6px}input,select{padding:11px;border:1px solid #b8c7d5;border-radius:8px;font:inherit;max-width:100%;width:100%}header select{width:auto;color:#17232d}button{background:#176b9c;color:white;border:0;border-radius:8px;padding:11px 16px;font:inherit;cursor:pointer;margin:8px 8px 0 0}button:disabled{opacity:.6;cursor:not-allowed}.secondary{background:#e8eff5;color:#173c5d}.muted{color:#5b6e7b}.hidden{display:none!important}.nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.nav button{margin:0}.nav button.active{background:#123b5d}table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8ee}th{background:#f1f6fa}.scroll{overflow:auto}.alert{background:#fff5e3;padding:12px;border-radius:8px;margin-top:12px;white-space:pre-wrap}.ok{background:#e6f5ea}.summary{display:flex;gap:12px;flex-wrap:wrap}.summary>div{background:#eff5fa;border-radius:10px;padding:14px;flex:1;min-width:160px}footer{text-align:center;padding:22px;color:#526779}small{font-size:.85rem}
+</style></head><body><header><div class="top"><div><h1>Tube Inventory Manager</h1><p>Built By Carlos Miranda</p></div><div><label for="lang" data-i="language">Idioma / Language</label><select id="lang"><option value="es">Español</option><option value="en">English</option></select></div></div></header><main>
+<section class="panel" id="loginPanel"><h2 data-i="login">Iniciar sesión</h2><p class="muted" data-i="loginNote">Utiliza el correo y contraseña de tu cuenta de Supabase Authentication.</p><form id="loginForm"><label for="email" data-i="email">Correo electrónico</label><input id="email" type="email" required autocomplete="username"><label for="password" data-i="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" data-i="loginButton">Entrar</button></form><p id="loginMessage" role="status" class="alert hidden"></p></section>
+<section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div><div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
 <div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><div class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
+<div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
+<div id="measureCatalog" class="panel hidden" style="background:#f8fafc">
+<h3 data-i="measureTitle">Administrar medidas OD y Wall</h3>
+<p class="muted" data-i="measureHelp">Selecciona una medida existente o añade una nueva. Las anteriores permanecen disponibles.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+<div><label for="odSelect">OD</label><select id="odSelect"></select><label for="newOd" data-i="newOd">Nuevo OD (pulgadas)</label><input id="newOd" inputmode="decimal" placeholder="2.125"><button type="button" id="addOd" data-i="addOd">+ Añadir OD</button><button type="button" id="clearOd" class="secondary" data-i="clear">Limpiar</button><button type="button" id="cancelOd" class="secondary" data-i="cancel">Cancelar</button></div>
+<div><label for="wallSelect">Wall</label><select id="wallSelect"></select><label for="newWall" data-i="newWall">Nuevo Wall (pulgadas)</label><input id="newWall" inputmode="decimal" placeholder=".042"><button type="button" id="addWall" data-i="addWall">+ Añadir Wall</button><button type="button" id="clearWall" class="secondary" data-i="clear">Limpiar</button><button type="button" id="cancelWall" class="secondary" data-i="cancel">Cancelar</button></div>
+</div><p id="measureMessage" class="alert hidden" role="status"></p></div><div class="scroll"><table><thead><tr><th>SKU</th><th>OD</th><th>Wall</th><th data-i="length">Largo</th><th data-i="material">Material</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
+<div id="movementsView" class="panel view hidden"><h2 data-i="movements">Historial</h2><div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="quantity">Cantidad</th><th data-i="reason">Motivo</th></tr></thead><tbody id="movementsBody"></tbody></table></div></div>
+<div id="operationsView" class="panel view hidden"><h2 data-i="operations">Operaciones</h2>
+<p class="muted" data-i="opsNote">Registra movimientos seguros. Cada operación queda registrada en el historial.</p>
+<div id="opsRestricted" class="alert hidden" data-i="opsRestricted">Solo administradores y supervisores pueden registrar operaciones.</div>
+<form id="operationForm">
+<label for="opType" data-i="opType">Tipo de operación</label><select id="opType" required><option value="entry" data-i="entry">Entrada</option><option value="exit" data-i="exit">Salida</option><option value="transfer" data-i="transfer">Transferencia</option><option value="adjustment" data-i="adjustment">Ajuste</option></select>
+<label for="opProduct" data-i="opProduct">Producto (SKU)</label><select id="opProduct" required></select>
+<label for="opQuantity" data-i="quantity">Cantidad</label><input id="opQuantity" type="text" inputmode="numeric" data-number-format="integer" required inputmode="numeric">
+<div id="opFromGroup"><label for="opFrom" data-i="fromDept">Departamento de origen</label><select id="opFrom"></select></div>
+<div id="opToGroup"><label for="opTo" data-i="toDept">Departamento de destino</label><select id="opTo"></select></div>
+<div id="opDirectionGroup"><label for="opDirection" data-i="direction">Dirección del ajuste</label><select id="opDirection"><option value="increase" data-i="increase">Aumentar</option><option value="decrease" data-i="decrease">Disminuir</option></select></div>
+<div id="warehouseExitFields" class="hidden"><label for="exitRack" data-i="exitRack">Rack / Bin de origen</label><select id="exitRack"></select><label for="exitEmployee" data-i="exitEmployee">Empleado que retira el material</label><input id="exitEmployee" type="text" maxlength="150" autocomplete="off"><p class="muted" data-i="exitNotice">La conexión se puede verificar sin modificar inventario.</p><button type="button" id="verifyWarehouseRpc" data-i="verifyWarehouseRpc">Verificar conexión segura</button><p id="verifyWarehouseResult" role="status" class="alert hidden"></p></div><label for="opReason" data-i="reason">Motivo</label><input id="opReason" type="text" maxlength="500" required>
+<label for="opReference" data-i="reference">Número de referencia (opcional)</label><input id="opReference" type="text" maxlength="120">
+<p class="muted" data-i="opsCaution">Verifica los datos antes de guardar. Los movimientos modifican el inventario real.</p>
+<button id="opSubmit" type="submit" data-i="saveMovement">Registrar movimiento</button><button type="button" id="opClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="opCancel" class="secondary" data-i="cancel">Cancelar</button><p id="opMessage" role="status" class="alert hidden"></p>
+</form></div>
+
+<div id="receivingView" class="panel view hidden">
+<h2 data-i="receiving">Receiving / Recepción</h2>
+<p class="alert" data-i="receivingDemo">MODO DE PRUEBA: este formulario no guarda ni modifica datos en Supabase.</p>
+<div id="receivingRestricted" class="alert hidden" data-i="receivingRestricted">Solo administradores y supervisores pueden preparar recepciones.</div>
+<div id="recvLookup" style="border:1px solid #d6e1eb;border-radius:10px;padding:14px;margin:12px 0;background:#f8fafc"><h3 data-i="recvFindTitle">Buscar recepción guardada</h3><p class="muted" data-i="recvFindHelp">Selecciona un borrador de Supabase para cargar sus productos y Racks.</p><button type="button" id="recvFindRefresh" data-i="recvFindRefresh">Buscar borradores</button><label for="recvFindSelect" data-i="recvFindSelect">Borradores disponibles</label><select id="recvFindSelect"></select><button type="button" id="recvFindLoad" data-i="recvFindLoad">Cargar borrador</button><p id="recvFindMessage" role="status" class="alert hidden"></p></div><div id="receivingEditor">
+<label for="recvBol" data-i="recvBol">Bill of Lading (BOL)</label><input id="recvBol" maxlength="120" placeholder="BOL-0001">
+<label for="recvSupplier" data-i="recvSupplier">Proveedor</label><input id="recvSupplier" maxlength="150" placeholder="Supplier / Proveedor">
+<label for="recvDate" data-i="recvDate">Fecha de recepción</label><input id="recvDate" type="date">
+<h3 data-i="recvProducts">Productos de la recepción</h3><div id="recvItems"></div>
+<button type="button" id="recvAddItem" data-i="recvAddItem">+ Añadir producto</button>
+<div class="summary" style="margin-top:16px"><div><span data-i="recvTotalQty">Total tubos</span><h2 id="recvSumQty">0</h2></div><div><span data-i="recvTotalPackages">Total cajas</span><h2 id="recvSumPackages">0</h2></div><div><span data-i="recvTotalWeight">Peso neto declarado (lb)</span><h2 id="recvSumWeight">0</h2></div></div>
+<button type="button" id="recvValidate" data-i="recvValidate">Validar borrador</button><button type="button" id="recvSaveDraft" data-i="recvSaveDraft">Guardar borrador</button><button type="button" id="recvPost" data-i="recvPost" disabled title="Pendiente de conexión segura a Supabase">Contabilizar Receiving</button><button type="button" id="recvReset" class="secondary" data-i="recvReset">Limpiar formulario</button><button type="button" id="recvCancel" class="secondary" data-i="cancel">Cancelar</button>
+<p id="recvMessage" role="status" class="alert hidden"></p>
+</div></div>
+<div id="precutReportView" class="panel view hidden"><h2 data-i="precutReport">Reporte PRECUT</h2><p class="muted" data-i="precutReportNote">Inventario disponible por proveedor, OD, Wall, longitud, material y departamento. Los productos sin existencias aparecen en cero.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px"><div><label data-i="supplier">Proveedor</label><select id="prSupplier"></select></div><div><label>OD</label><select id="prOd"></select></div><div><label>Wall</label><select id="prWall"></select></div><div><label data-i="length">Longitud</label><select id="prLength"></select></div><div><label data-i="material">Material</label><select id="prMaterial"></select></div><div><label data-i="department">Departamento</label><select id="prDepartment"></select></div></div><button type="button" id="prReload" data-i="prReload">Actualizar reporte</button><button type="button" id="prExcel" data-i="prExcel">Exportar a Excel (.xlsx)</button><p id="prMessage" role="status" class="alert hidden"></p><div class="summary"><div><span data-i="recvTotalPackages">Total paquetes</span><h2 id="prPackages">0</h2></div><div><span data-i="recvTotalQty">Total tubos</span><h2 id="prTubes">0</h2></div><div><span data-i="prTotalLb">Peso neto (lb)</span><h2 id="prLb">0</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="supplier">Proveedor</th><th>OD</th><th>Wall</th><th data-i="length">Longitud</th><th data-i="material">Material</th><th data-i="department">Departamento</th><th data-i="recvTotalPackages">Paquetes</th><th data-i="recvTotalQty">Tubos</th><th data-i="prTotalLb">Libras (lb)</th><th data-i="prConfirmed">Libras confirmadas</th><th data-i="prPending">Peso pendiente</th></tr></thead><tbody id="prBody"></tbody></table></div></div><div id="productionReportView" class="panel view hidden"><h2 data-i="productionReport">Reporte de producción</h2><p class="muted" data-i="productionNote">Existencias registradas de productos RAW y Drawn por departamento. Las libras y paquetes no se calculan sin datos verificados.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px"><div><label data-i="productionType">Tipo</label><select id="pdType"></select></div><div><label>OD</label><select id="pdOd"></select></div><div><label>Wall</label><select id="pdWall"></select></div><div><label data-i="length">Longitud</label><select id="pdLength"></select></div><div><label data-i="material">Material</label><select id="pdMaterial"></select></div><div><label data-i="department">Departamento</label><select id="pdDepartment"></select></div></div><button type="button" id="pdReload" data-i="prReload">Actualizar reporte</button><button type="button" id="pdExcel" data-i="prExcel">Exportar a Excel (.xlsx)</button><p id="pdMessage" role="status" class="alert hidden"></p><div class="summary"><div><span data-i="recvTotalQty">Total tubos</span><h2 id="pdTotal">0</h2></div><div><span data-i="productionRows">Registros mostrados</span><h2 id="pdCount">0</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="productionType">Tipo</th><th>OD</th><th>Wall</th><th data-i="length">Longitud</th><th data-i="material">Material</th><th data-i="department">Departamento</th><th data-i="recvTotalQty">Tubos</th></tr></thead><tbody id="pdBody"></tbody></table></div></div><div id="warehouseReportView" class="panel view hidden">
+<h2 data-i="warehouseReport">Reporte Warehouse — Building 3</h2>
+<p class="muted" data-i="warehouseNote">Balance general por peso registrado en Supabase. Las libras no son tubos ni se suman de nuevo a las ubicaciones. Racks y movimientos históricos se gestionan por separado.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px">
+<div><label data-i="productionType">Tipo</label><select id="whType"></select></div>
+<div><label data-i="supplier">Proveedor</label><select id="whSupplier"></select></div>
+<div><label>OD</label><select id="whOd"></select></div>
+<div><label>Wall</label><select id="whWall"></select></div>
+<div><label data-i="length">Largo</label><select id="whLength"></select></div>
+<div><label data-i="material">Material</label><select id="whMaterial"></select></div>
+</div>
+<button type="button" id="whReload" data-i="prReload">Actualizar reporte</button><button type="button" id="whExcel" data-i="prExcel">Exportar a Excel (.xlsx)</button>
+<p id="whMessage" role="status" class="alert hidden"></p>
+<div class="summary"><div><span data-i="warehouseBalance">Balance Warehouse (lb)</span><h2 id="whTotal">—</h2></div><div><span data-i="warehouseRows">Productos mostrados</span><h2 id="whCount">—</h2></div><div><span data-i="warehouseRaw">RAW (lb)</span><h2 id="whRaw">—</h2></div><div><span data-i="warehousePrecut">PRECUT (lb)</span><h2 id="whPrecut">—</h2></div></div>
+<div class="scroll"><table><thead><tr><th>SKU</th><th data-i="warehouseItem">Item Number</th><th data-i="productionType">Tipo</th><th data-i="supplier">Proveedor</th><th>OD</th><th>Wall</th><th data-i="length">Largo</th><th data-i="material">Material</th><th data-i="department">Departamento</th><th data-i="warehouseBalance">Balance (lb)</th></tr></thead><tbody id="whBody"></tbody></table></div>
+<p class="muted" data-i="warehouseHistorical">Los movimientos históricos a Producción ya están reflejados en el balance importado cuando así consta en el Excel. No se descuentan nuevamente. Este reporte no permite modificar existencias.</p>
+</div><div id="correctionsView" class="panel view hidden">
+<h2 data-i="b15Title">Correcciones — Administrador</h2>
+<p class="alert" data-i="b15Help">Los totales de Warehouse y las asignaciones manuales a racks son distintos. Una asignación no añade inventario al total. Las correcciones quedan auditadas.</p>
+<form id="b15Form">
+<label for="b15Kind" data-i="b15KindLabel">Tipo de corrección</label><select id="b15Kind"><option value="total_tubes" data-i="b15TotalTubes">Total de tubos Warehouse</option><option value="total_weight" data-i="b15TotalWeight">Total de libras Warehouse</option><option value="rack_assignment" data-i="b15RackAssignment">Asignación manual a Rack / Bin</option></select>
+<label for="b15Product">SKU</label><select id="b15Product" required></select>
+<div id="b15RackRow" class="hidden"><label for="b15Rack" data-i="b15RackLabel">Rack / Bin</label><select id="b15Rack"></select></div>
+<p id="b15Current" class="muted" role="status"></p>
+<div id="b15QtyRow"><label for="b15Qty" data-i="b15Qty">Nuevo total de tubos</label><input id="b15Qty" type="text" inputmode="numeric" data-number-format="integer"></div>
+<div id="b15PackRow" class="hidden"><label for="b15Packages" data-i="b15Packages">Paquetes asignados</label><input id="b15Packages" type="text" inputmode="numeric" data-number-format="integer"></div>
+<div id="b15WeightRow" class="hidden"><label for="b15Weight" data-i="b15Weight">Libras (lb)</label><input id="b15Weight" type="text" inputmode="decimal" data-number-format="decimal"></div>
+<label for="b15Reason" data-i="b15Reason">Motivo de corrección (obligatorio)</label><input id="b15Reason" maxlength="500" required>
+<label for="b15Reference" data-i="b15Reference">Referencia (opcional)</label><input id="b15Reference" maxlength="120">
+<p id="b15Preview" class="alert" role="status" aria-live="polite"></p>
+<button type="submit" id="b15Save" data-i="b15Save">Confirmar corrección</button><button type="button" class="secondary" id="b15Cancel" data-i="cancel">Cancelar</button>
+</form><p class="alert hidden" id="b15Message" role="status"></p>
+<h3 data-i="b15History">Historial de correcciones</h3><button type="button" class="secondary" id="b15Reload" data-i="refresh">Actualizar datos</button>
+<div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="reason">Motivo</th><th data-i="b15Change">Antes → Después</th></tr></thead><tbody id="b15Audit"></tbody></table></div>
+
+<hr style="margin:26px 0;border:0;border-top:1px solid #d6e1eb">
+<section id="b15ReversalPanel" aria-label="Controlled reversals">
+<h3 data-i="b15RevTitle">Reversiones y cancelaciones controladas — Admin</h3>
+<p class="alert" data-i="b15RevNote">Estas operaciones modifican el inventario real, requieren justificación y quedan auditadas. Nunca redistribuyen racks automáticamente.</p>
+<button type="button" class="secondary" id="b15RevReload" data-i="refresh">Actualizar datos</button>
+<label for="b15RevKind" data-i="b15RevKindLabel">Operación</label>
+<select id="b15RevKind"><option value="movement" data-i="b15RevMovement">Revertir movimiento sin rack</option><option value="receiving" data-i="b15RevReceiving">Cancelar recepción contabilizada</option></select>
+<label for="b15RevTarget" data-i="b15RevTargetLabel">Registro original</label>
+<select id="b15RevTarget"></select>
+<p id="b15RevDetails" class="muted" role="status"></p>
+<label for="b15RevReason" data-i="b15RevReasonLabel">Motivo obligatorio (5–500 caracteres)</label>
+<input id="b15RevReason" maxlength="500" autocomplete="off">
+<p id="b15RevPreview" class="alert" role="status"></p>
+<button type="button" id="b15RevApply" data-i="b15RevApply">Confirmar operación</button>
+<p id="b15RevMessage" class="alert hidden" role="status"></p>
+</section>
+</div><div id="departmentsView" class="panel view hidden"><h2 data-i="manageDepartments">Administrar departamentos</h2><p class="muted" data-i="deptNote">Solo los administradores pueden añadir departamentos. Los departamentos existentes se muestran a continuación.</p><form id="departmentForm"><label for="departmentName" data-i="newDepartment">Nombre del nuevo departamento</label><input id="departmentName" type="text" maxlength="100" autocomplete="off" required><button type="submit" id="departmentSubmit" data-i="addDepartment">Añadir departamento</button><button type="button" id="deptClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="deptCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="departmentMessage" role="status" class="alert hidden"></p><p class="muted" data-i="admin14Help">Editar, desactivar o recuperar registros. No se borran datos del historial.</p><h3 data-i="departmentList">Departamentos registrados</h3><div class="scroll"><table><thead><tr><th data-i="department">Departamento</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="departmentsBody"></tbody></table></div></div><div id="locationsView" class="panel view hidden"><h2 data-i="manageLocations">Ubicaciones del almacén</h2><p class="muted" data-i="locationNote">Registra racks, bins o áreas manualmente.</p><form id="locationForm"><label for="locationName" data-i="locationName">Nombre de ubicación</label><input id="locationName" maxlength="100" required placeholder="Rack 2, Bin A-1, Area Receiving"><label for="locationType" data-i="locationType">Tipo de ubicación</label><select id="locationType"><option value="Rack">Rack</option><option value="Bin">Bin</option><option value="Location">Location / Área</option></select><button id="locationSubmit" type="submit" data-i="addLocation">Añadir ubicación</button><button type="button" id="locationClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="locationCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="locationMessage" class="alert hidden" role="status"></p><h3 data-i="locationList">Ubicaciones registradas</h3><div class="scroll"><table><thead><tr><th data-i="locationName">Ubicación</th><th data-i="locationType">Tipo</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="locationsBody"></tbody></table></div></div></section>
+</main><footer>Tube Inventory Manager · Built By Carlos Miranda</footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script><script>
+'use strict';
+const SUPABASE_URL='https://dzpbqtfgukzhiirpjqtn.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_DFyZHokdJzPq6zrfw0JVjw_VEzz9JlA';
+const tr={es:{language:'Idioma / Language',login:'Iniciar sesión',loginNote:'Utiliza el correo y contraseña de tu cuenta de Supabase Authentication.',email:'Correo electrónico',password:'Contraseña',loginButton:'Entrar',logout:'Cerrar sesión',stock:'Inventario',products:'Productos',movements:'Historial',operations:'Operaciones',refresh:'Actualizar datos',totalStock:'Tubos registrados',stockRows:'Registros de inventario',department:'Departamento',quantity:'Cantidad',updated:'Actualizado',length:'Largo',material:'Material',date:'Fecha',type:'Tipo',reason:'Motivo',opsNote:'Las entradas, salidas, transferencias y ajustes se habilitarán después de verificar los parámetros de la función segura register_inventory_movement y probar los permisos. No se permiten cambios directos a las tablas de inventario.',loading:'Cargando datos…',empty:'No hay registros todavía.',notMember:'Tu usuario no está registrado en la tabla members. Contacta al administrador.',loadError:'No se pudieron cargar los datos: ',loginError:'No se pudo iniciar sesión: ',logged:'Sesión iniciada',missingLib:'No se pudo cargar la biblioteca de Supabase. Comprueba tu conexión a internet.'},en:{language:'Idioma / Language',login:'Sign in',loginNote:'Use your Supabase Authentication account email and password.',email:'Email',password:'Password',loginButton:'Sign in',logout:'Sign out',stock:'Inventory',products:'Products',movements:'History',operations:'Operations',refresh:'Refresh data',totalStock:'Registered tubes',stockRows:'Inventory records',department:'Department',quantity:'Quantity',updated:'Updated',length:'Length',material:'Material',date:'Date',type:'Type',reason:'Reason',opsNote:'Entries, exits, transfers, and adjustments will be enabled after we verify the secure register_inventory_movement function parameters and test permissions. Direct changes to inventory tables are not permitted.',loading:'Loading data…',empty:'No records yet.',notMember:'Your user is not registered in the members table. Contact an administrator.',loadError:'Unable to load data: ',loginError:'Unable to sign in: ',logged:'Signed in',missingLib:'Could not load the Supabase library. Check your internet connection.'}};
+const $=id=>document.getElementById(id);let lang='es',client=null,activeView='stock',currentRole='',memberDisplayName='',cache={stock:[],products:[],movements:[],departments:[],warehouse_locations:[],stock_locations:[],catalog_options:[]};const t=k=>tr[lang][k]||k;
+// Bloque 15 — Parche 02: consistent en-US grouping (1,234.50) in numeric fields.
+// A comma is accepted ONLY as a 3-digit grouping separator, never as a decimal separator.
+function numberFromInput(value){
+ const raw=String(value??'').trim();
+ if(!raw)return NaN;
+ if(!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(raw) && !/^\.\d+$/.test(raw))return NaN;
+ const n=Number(raw.replace(/,/g,''));
+ return Number.isFinite(n)?n:NaN;
+}
+function formattedNumberInput(value,integer=false){
+ const n=numberFromInput(value);
+ if(!Number.isFinite(n)|| (integer&&!Number.isSafeInteger(n)))return String(value);
+ return n.toLocaleString('en-US',{useGrouping:true,maximumFractionDigits:integer?0:20});
+}
+// Apply to current and dynamically created inputs. Formatting on blur preserves cursor while typing.
+document.addEventListener('focusout',e=>{
+ const el=e.target;
+ if(!el?.matches?.('input[data-number-format]')||!el.value.trim())return;
+ el.value=formattedNumberInput(el.value,el.dataset.numberFormat==='integer');
+});
+function showMessage(id,msg,ok=false){$(id).textContent=msg;$(id).className='alert'+(ok?' ok':'')+(msg?'':' hidden')}
+function localizedDisplayName(name){
+ const raw=String(name||'').trim();
+ const key=raw.toLocaleLowerCase().replace(/\s+/g,' ');
+ const titles={
+  'administrador principal':['Administrador Principal','Main Administrator'],
+  'main administrator':['Administrador Principal','Main Administrator'],
+  'administrador':['Administrador','Administrator'],
+  'administrator':['Administrador','Administrator'],
+  'supervisor':['Supervisor','Supervisor'],
+  'empleado':['Empleado','Employee'],
+  'employee':['Empleado','Employee']
+ };
+ return titles[key]?(lang==='es'?titles[key][0]:titles[key][1]):raw;
+}
+function updateMemberHeading(){
+ if(memberDisplayName)$('welcome').textContent=localizedDisplayName(memberDisplayName);
+ $('role').textContent=currentRole;
+}
+function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));updateMemberHeading();render()}
+function td(value){const e=document.createElement('td');e.textContent=value==null?'—':String(value);return e}
+function rows(id,data,make){const body=$(id);body.replaceChildren();if(!data.length){let r=document.createElement('tr'),c=td(t('empty'));c.colSpan=6;r.append(c);body.append(r);return}data.forEach(item=>{const r=document.createElement('tr');make(item).forEach(x=>r.append(td(x)));body.append(r)})}
+function render(){const p=new Map(cache.products.map(x=>[x.id,x]));const d=new Map(cache.departments.map(x=>[x.id,x]));$('stockTotal').textContent=cache.stock.reduce((a,x)=>a+(numberFromInput(x.quantity)||0),0).toLocaleString();$('stockCount').textContent=cache.stock.length;rows('stockBody',cache.stock,x=>[p.get(x.product_id)?.sku||x.product_id,d.get(x.department_id)?.name||x.department_id,Number(x.quantity).toLocaleString('en-US'),x.updated_at?new Date(x.updated_at).toLocaleString(lang==='es'?'es-US':'en-US'):'—']);const catalog=new Map((cache.catalog_options||[]).map(o=>[o.id,o]));const catalogValue=(id,category)=>{const option=catalog.get(id);return option&&String(option.category).toLowerCase()===category?option.value:'—'};rows('productsBody',cache.products,x=>[x.sku,catalogValue(x.od_id,'od'),catalogValue(x.wall_id,'wall'),catalogValue(x.length_id,'length'),catalogValue(x.material_id,'material'),x.active===false?t('inactive'):t('active')]);rows('movementsBody',cache.movements,x=>[x.created_at?new Date(x.created_at).toLocaleString(lang==='es'?'es-US':'en-US'):'—',p.get(x.product_id)?.sku||x.product_id,x.movement_type,Number(x.quantity).toLocaleString('en-US'),x.reason]);document.querySelectorAll('.view').forEach(e=>e.classList.toggle('hidden',e.id!==activeView+'View'));document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('active',e.dataset.view===activeView))}
+async function load(){showMessage('appMessage',t('loading'),true);const names=['products','departments','stock','movements','warehouse_locations','stock_locations'];try{const results=await Promise.all(names.map(async name=>{let q=client.from(name).select('*');if(name==='movements')q=q.order('created_at',{ascending:false}).limit(200);const {data,error}=await q;if(error)throw new Error(name+': '+error.message);return data||[]}));names.forEach((name,i)=>cache[name]=results[i]);const {data:catalogData,error:catalogError}=await client.from('catalog_options').select('id,category,value,active');if(catalogError){cache.catalog_options=[];render();showMessage('appMessage',t('catalogLoadError')+catalogError.message);return;}cache.catalog_options=catalogData||[];render();showMessage('appMessage','')}catch(e){showMessage('appMessage',t('loadError')+e.message)}}
+async function sync(){const {data:{session},error}=await client.auth.getSession();if(error)showMessage('loginMessage',error.message);$('loginPanel').classList.toggle('hidden',!!session);$('appPanel').classList.toggle('hidden',!session);if(!session){currentRole='';memberDisplayName='';activeView='stock';$('departmentsNav').classList.add('hidden');$('locationsNav').classList.add('hidden');return;}const {data:member,error:memberErr}=await client.from('members').select('display_name,role').eq('user_id',session.user.id).maybeSingle();if(memberErr||!member){currentRole='';memberDisplayName='';$('departmentsNav').classList.add('hidden');$('locationsNav').classList.add('hidden');$('appPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');showMessage('loginMessage',memberErr?memberErr.message:t('notMember'));return}memberDisplayName=member.display_name||session.user.email;currentRole=member.role;updateMemberHeading();activeView='stock';$('departmentsNav').classList.toggle('hidden',currentRole!=='admin');$('locationsNav').classList.toggle('hidden',currentRole!=='admin');await load()}
+$('lang').onchange=e=>{lang=e.target.value;translate()};document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(['departments','locations'].includes(b.dataset.view)&&currentRole!=='admin')return;activeView=b.dataset.view;render()});$('refresh').onclick=load;$('loginForm').onsubmit=async e=>{e.preventDefault();if(!client)return;showMessage('loginMessage','');const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)showMessage('loginMessage',t('loginError')+error.message);else{ $('password').value='';await sync() }};$('logout').onclick=async()=>{await client.auth.signOut();await sync()};
+if(!window.supabase){showMessage('loginMessage',t('missingLib'))}else{client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);sync()}
+// Translations are finalized below.
+
+Object.assign(tr.es,{exitRack:'Rack / Bin de origen',exitEmployee:'Empleado que retira el material',exitNotice:'Salidas de Warehouse: selecciona producto, Rack y departamento receptor. Cada salida modifica el inventario y queda registrada.',exitRequired:'Selecciona el departamento receptor, Rack y escribe el nombre del empleado.',exitNotReady:'Salida protegida: falta verificar la conexión con Supabase.'});
+Object.assign(tr.es,{testOnly:'MODO DE PRUEBA: solo se permite retirar 1 tubo del SKU TEST-2125-042-585 desde Rack 1. Después de una salida exitosa, se bloquearán nuevas salidas hasta una revisión.',testRestriction:'Por seguridad, solo está autorizada una salida de prueba: 1 tubo del SKU TEST-2125-042-585 desde Rack 1.',testAlreadyDone:'Esta sesión ya registró la salida de prueba. No se permiten más salidas.',testConfirm:'PRUEBA REAL: se descontará 1 tubo de Warehouse y Rack 1. Esta operación SÍ modifica Supabase. ¿Confirmas?',testResult:'Salida registrada. Comprueba el inventario y el historial. Warehouse: {wh}; Rack 1: {rack}.',testMissing:'No se encontró Warehouse o Rack 1 en los datos cargados. Actualiza los datos.',testInsufficient:'No hay inventario suficiente en Warehouse o Rack 1 para esta prueba.'});
+Object.assign(tr.en,{testOnly:'TEST MODE: only 1 tube of SKU TEST-2125-042-585 from Rack 1 may be issued. Further exits are blocked after a successful test until reviewed.',testRestriction:'For safety, only one test exit is authorized: 1 tube of SKU TEST-2125-042-585 from Rack 1.',testAlreadyDone:'A test exit has already been recorded this session. No further exits are allowed.',testConfirm:'REAL TEST: 1 tube will be deducted from Warehouse and Rack 1. This DOES change Supabase. Confirm?',testResult:'Exit recorded. Check inventory and history. Warehouse: {wh}; Rack 1: {rack}.',testMissing:'Warehouse or Rack 1 could not be found in loaded data. Refresh data.',testInsufficient:'Insufficient Warehouse or Rack 1 inventory for this test.'});
+Object.assign(tr.es,{verifyWarehouseRpc:'Verificar conexión segura',verifySuccess:'Conexión verificada. Supabase rechazó correctamente una cantidad inválida. No se modificó el inventario.',verifyFail:'No se pudo confirmar la conexión: ',verifyMissing:'Selecciona primero un producto, un Rack y un departamento de destino.'});
+Object.assign(tr.en,{verifyWarehouseRpc:'Verify secure connection',verifySuccess:'Connection verified. Supabase correctly rejected an invalid quantity. No inventory was changed.',verifyFail:'Could not verify connection: ',verifyMissing:'First select a product, a Rack and a receiving department.'});
+Object.assign(tr.en,{exitRack:'Source Rack / Bin',exitEmployee:'Employee collecting the material',exitNotice:'Warehouse exits: select product, Rack and receiving department. Each exit changes inventory and is logged.',exitRequired:'Select receiving department, Rack, and enter the employee name.',exitNotReady:'Protected exit: Supabase connection verification is pending.'});
+Object.assign(tr.es,{exitInvalidDestination:'Selecciona un Rack activo y un departamento receptor diferente de Warehouse.',exitConfirm:'¿Confirmas retirar {qty} tubo(s) de Warehouse, desde {rack}, con destino {destination}? Esta operación modifica Supabase.',exitResult:'Salida registrada. Verifica inventario e historial. Warehouse: {wh}; Rack: {rack}.'});
+Object.assign(tr.en,{exitInvalidDestination:'Select an active Rack and a receiving department other than Warehouse.',exitConfirm:'Confirm issue of {qty} tube(s) from Warehouse, from {rack}, to {destination}? This changes Supabase.',exitResult:'Exit recorded. Check inventory and history. Warehouse: {wh}; Rack: {rack}.'});
+// Bilingual inventory operations; all writes go through the secured RPC.
+Object.assign(tr.es,{opsNote:'Registra movimientos seguros. Cada operación queda registrada en el historial.',opsRestricted:'Solo administradores y supervisores pueden registrar operaciones.',opType:'Tipo de operación',entry:'Entrada',exit:'Salida',transfer:'Transferencia',adjustment:'Ajuste',opProduct:'Producto (SKU)',fromDept:'Departamento de origen',toDept:'Departamento de destino',direction:'Dirección del ajuste',increase:'Aumentar',decrease:'Disminuir',reference:'Número de referencia (opcional)',opsCaution:'Verifica los datos antes de guardar. Los movimientos modifican el inventario real.',saveMovement:'Registrar movimiento',saving:'Registrando movimiento…',saved:'Movimiento registrado correctamente.',choose:'Selecciona una opción',sameDept:'Los departamentos de origen y destino deben ser diferentes.',invalidQty:'Introduce una cantidad entera mayor que cero.',confirmOp:'¿Confirmas registrar este movimiento en el inventario real?',noProducts:'No hay productos activos disponibles.',noDepartments:'No hay departamentos disponibles.'});
+Object.assign(tr.en,{opsNote:'Record secure inventory movements. Every operation is logged in history.',opsRestricted:'Only administrators and supervisors can register operations.',opType:'Operation type',entry:'Entry',exit:'Exit',transfer:'Transfer',adjustment:'Adjustment',opProduct:'Product (SKU)',fromDept:'Source department',toDept:'Destination department',direction:'Adjustment direction',increase:'Increase',decrease:'Decrease',reference:'Reference number (optional)',opsCaution:'Verify details before saving. Movements change real inventory.',saveMovement:'Register movement',saving:'Registering movement…',saved:'Movement registered successfully.',choose:'Select an option',sameDept:'Source and destination departments must differ.',invalidQty:'Enter a positive whole-number quantity.',confirmOp:'Confirm this movement in the live inventory?',noProducts:'No active products available.',noDepartments:'No departments available.'});
+function setOptions(id,items,label){const sel=$(id),previous=sel.value;sel.replaceChildren();const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=t('choose');sel.append(placeholder);items.forEach(item=>{const opt=document.createElement('option');opt.value=item.id;opt.textContent=label(item);sel.append(opt)});if(items.some(item=>item.id===previous))sel.value=previous;}
+function renderOperationChoices(){setOptions('opProduct',cache.products.filter(p=>p.active!==false),p=>p.sku||p.id);for(const id of ['opFrom','opTo'])setOptions(id,cache.departments,d=>d.name||d.id);updateOperationLayout();}
+function updateOperationLayout(){const type=$('opType').value;const isExit=type==='exit';$('warehouseExitFields').classList.toggle('hidden',!isExit);$('opToGroup').classList.toggle('hidden',type==='adjustment');$('opFrom').disabled=isExit;if(isExit){const wh=cache.departments.find(d=>d.name.toLowerCase()==='warehouse');if(wh)$('opFrom').value=wh.id;}renderExitRackChoices();$('opFromGroup').classList.toggle('hidden',type==='entry');$('opToGroup').classList.toggle('hidden',type==='adjustment');$('opDirectionGroup').classList.toggle('hidden',type!=='adjustment');const allowed=['admin','supervisor'].includes($('role').textContent.trim());$('opsRestricted').classList.toggle('hidden',allowed);$('operationForm').classList.toggle('hidden',!allowed);}
+const originalRender=render;
+render=function(){originalRender();renderOperationChoices();renderDepartmentList();renderLocationList();};
+function renderExitRackChoices(){const product=$('opProduct').value;const wh=cache.departments.find(d=>d.name.toLowerCase()==='warehouse');const entries=(cache.stock_locations||[]).filter(s=>s.product_id===product&&s.department_id===wh?.id&&Number(s.quantity)>0);const locations=entries.map(s=>{const l=cache.warehouse_locations.find(x=>x.id===s.location_id);return {id:s.location_id,name:(l?.name||s.location_id)+' ('+Number(s.quantity).toLocaleString('en-US')+' '+t('quantity')+')'};});setOptions('exitRack',locations,x=>x.name)}
+$('verifyWarehouseRpc').addEventListener('click',async()=>{
+ const product=$('opProduct').value,rack=$('exitRack').value,to=$('opTo').value;
+ if(!product||!rack||!to){showMessage('verifyWarehouseResult',t('verifyMissing'));return;}
+ const button=$('verifyWarehouseRpc');button.disabled=true;
+ try{
+  // Quantity zero is always rejected by the installed RPC before any stock update.
+  const {error}=await client.rpc('register_warehouse_exit',{
+   p_product_id:product,p_location_id:rack,p_quantity:0,
+   p_received_by_name:'CONNECTION TEST',p_to_department_id:to,
+   p_reason:'CONNECTION TEST - NO INVENTORY CHANGE',p_reference_number:null
+  });
+  if(error && /Invalid warehouse exit information/i.test(error.message||'')){
+   showMessage('verifyWarehouseResult',t('verifySuccess'),true);
+  }else{
+   showMessage('verifyWarehouseResult',t('verifyFail')+(error?.message||'Unexpected RPC response'));
+  }
+ }catch(err){showMessage('verifyWarehouseResult',t('verifyFail')+(err.message||String(err)));}
+ finally{button.disabled=false;}
+});
+$('opProduct').addEventListener('change',renderExitRackChoices);$('opType').onchange=updateOperationLayout;
+$('operationForm').onsubmit=async event=>{
+ event.preventDefault();if(!client)return;
+ const type=$('opType').value,product=$('opProduct').value,from=$('opFrom').value,to=$('opTo').value;
+ const qty=numberFromInput($('opQuantity').value),reason=$('opReason').value.trim();
+ if(!Number.isSafeInteger(qty)||qty<=0){showMessage('opMessage',t('invalidQty'));return;}
+ if(!product||!reason||(type!=='entry'&&!from)||((type==='entry'||type==='transfer')&&!to)){showMessage('opMessage',t('choose'));return;}
+ if(type==='exit'&&(!to||!$('exitRack').value||!$('exitEmployee').value.trim())){showMessage('opMessage',t('exitRequired'));return;}
+ if(type==='transfer'&&from===to){showMessage('opMessage',t('sameDept'));return;}
+ let exitContext=null;
+ if(type==='exit'){
+  const wh=cache.departments.find(d=>d.name?.trim().toLowerCase()==='warehouse');
+  const rack=cache.warehouse_locations.find(l=>l.id===$('exitRack').value&&l.active!==false);
+  const destination=cache.departments.find(d=>d.id===to&&d.active!==false);
+  if(!wh||!rack||!destination||to===wh.id){showMessage('opMessage',t('exitInvalidDestination'));return;}
+  exitContext={product,warehouseId:wh.id,rackId:rack.id};
+ }
+ const confirmation=type==='exit'?
+  t('exitConfirm').replace('{qty}',String(qty)).replace('{rack}',cache.warehouse_locations.find(l=>l.id===exitContext.rackId)?.name||'Rack').replace('{destination}',cache.departments.find(d=>d.id===to)?.name||'—'):
+  t('confirmOp');
+ if(!window.confirm(confirmation))return;
+ const button=$('opSubmit');button.disabled=true;showMessage('opMessage',t('saving'),true);
+ try{
+  const {data,error}=type==='exit'?await client.rpc('register_warehouse_exit',{
+   p_product_id:product,p_quantity:qty,p_location_id:exitContext.rackId,
+   p_received_by_name:$('exitEmployee').value.trim(),p_to_department_id:to,
+   p_reason:reason,p_reference_number:$('opReference').value.trim()||null
+  }):await client.rpc('register_inventory_movement',{
+   p_product_id:product,p_movement_type:type,p_quantity:qty,
+   p_from_department_id:type==='entry'?null:from,
+   p_to_department_id:(type==='entry'||type==='transfer')?to:null,
+   p_adjustment_direction:type==='adjustment'?$('opDirection').value:null,
+   p_reason:reason,p_reference_number:$('opReference').value.trim()||null
+  });
+  if(error)throw error;
+  $('opQuantity').value='';$('exitEmployee').value='';$('opReason').value='';$('opReference').value='';
+  await load();
+  if(type==='exit'){
+   const wh=cache.stock.find(x=>x.product_id===exitContext.product&&x.department_id===exitContext.warehouseId);
+   const rack=cache.stock_locations.find(x=>x.product_id===exitContext.product&&x.department_id===exitContext.warehouseId&&x.location_id===exitContext.rackId);
+   const summary=t('exitResult').replace('{wh}',String(wh?.quantity??'—')).replace('{rack}',String(rack?.quantity??'—'));
+   showMessage('opMessage',summary+' ID: '+data,true);
+  }else showMessage('opMessage',t('saved')+' ID: '+data,true);
+ }catch(error){showMessage('opMessage',error.message||String(error));}
+ finally{button.disabled=false;}
+};
+
+// Department management uses an admin-checked SECURITY DEFINER RPC; no direct table writes.
+Object.assign(tr.es,{manageDepartments:'Administrar departamentos',deptNote:'Solo los administradores pueden añadir departamentos. Los departamentos existentes se muestran a continuación.',newDepartment:'Nombre del nuevo departamento',addDepartment:'Añadir departamento',departmentList:'Departamentos registrados',status:'Estado',active:'Activo',inactive:'Inactivo',deptRequired:'Escribe el nombre del departamento.',deptConfirm:'¿Deseas añadir este departamento?',deptSaving:'Añadiendo departamento…',deptSaved:'Departamento añadido correctamente.',deptAdminOnly:'Esta función es exclusiva del administrador.'});
+Object.assign(tr.en,{manageDepartments:'Manage departments',deptNote:'Only administrators can add departments. Existing departments are listed below.',newDepartment:'New department name',addDepartment:'Add department',departmentList:'Registered departments',status:'Status',active:'Active',inactive:'Inactive',deptRequired:'Enter a department name.',deptConfirm:'Add this department?',deptSaving:'Adding department…',deptSaved:'Department added successfully.',deptAdminOnly:'This function is for administrators only.'});
+function renderDepartmentList(){
+ const body=$('departmentsBody');body.replaceChildren();
+ if(!cache.departments.length){const r=document.createElement('tr'),c=td(t('empty'));c.colSpan=2;r.append(c);body.append(r);return;}
+ cache.departments.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).forEach(d=>{
+  const r=document.createElement('tr');r.append(td(d.name),td(d.active===false?t('inactive'):t('active')));if(currentRole==='admin')r.append(makeStatusAction('departments',d));else r.append(td('—'));body.append(r);
+ });
+}
+$('departmentForm').onsubmit=async event=>{
+ event.preventDefault();
+ if(!client||currentRole!=='admin'){showMessage('departmentMessage',t('deptAdminOnly'));return;}
+ const name=$('departmentName').value.trim();
+ if(!name){showMessage('departmentMessage',t('deptRequired'));return;}
+ if(!window.confirm(t('deptConfirm')+' '+name))return;
+ const button=$('departmentSubmit');button.disabled=true;showMessage('departmentMessage',t('deptSaving'),true);
+ try{
+  const {error}=await client.rpc('add_inventory_department',{p_name:name});
+  if(error)throw error;
+  $('departmentName').value='';await load();showMessage('departmentMessage',t('deptSaved'),true);
+ }catch(error){showMessage('departmentMessage',error.message||String(error));}
+ finally{button.disabled=false;}
+};
+
+
+// Warehouse locations are stored in Supabase and available as editable catalog entries.
+Object.assign(tr.es,{manageLocations:'Ubicaciones del almacén',locationNote:'Añade racks, bins y áreas manualmente. Puedes crear más ubicaciones cuando las necesites.',locationName:'Nombre de ubicación',locationType:'Tipo de ubicación',addLocation:'Añadir ubicación',locationList:'Ubicaciones registradas',locationSaved:'Ubicación añadida correctamente.',locationConfirm:'¿Añadir esta ubicación?',locationRequired:'Escribe el nombre de la ubicación.'});
+Object.assign(tr.en,{manageLocations:'Warehouse locations',locationNote:'Add racks, bins, and areas manually. You can create more locations whenever needed.',locationName:'Location name',locationType:'Location type',addLocation:'Add location',locationList:'Registered locations',locationSaved:'Location added successfully.',locationConfirm:'Add this location?',locationRequired:'Enter a location name.'});
+function renderLocationList(){
+ const body=$('locationsBody');body.replaceChildren();
+ const locations=cache.warehouse_locations||[];
+ if(!locations.length){const r=document.createElement('tr'),c=td(t('empty'));c.colSpan=3;r.append(c);body.append(r);return;}
+ locations.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(item=>{
+  const r=document.createElement('tr');r.append(td(item.name),td(item.location_type),td(item.active===false?t('inactive'):t('active')));body.append(r);
+ });
+}
+$('locationForm').onsubmit=async event=>{
+ event.preventDefault();
+ if(!client||currentRole!=='admin'){showMessage('locationMessage',t('deptAdminOnly'));return;}
+ const name=$('locationName').value.trim(),type=$('locationType').value;
+ if(!name){showMessage('locationMessage',t('locationRequired'));return;}
+ if(!window.confirm(t('locationConfirm')+' '+name+' ('+type+')'))return;
+ const button=$('locationSubmit');button.disabled=true;showMessage('locationMessage',t('loading'),true);
+ try{
+  const {error}=await client.from('warehouse_locations').insert({name,location_type:type});
+  if(error)throw error;
+  $('locationName').value='';await load();showMessage('locationMessage',t('locationSaved'),true);
+ }catch(error){showMessage('locationMessage',error.message||String(error));}
+ finally{button.disabled=false;}
+};
+
+
+// Receiving draft editor. Deliberately NO INSERT, UPDATE or RPC calls.
+Object.assign(tr.es,{receiving:'Receiving / Recepción',receivingDemo:'MODO DE PRUEBA: este formulario NO guarda ni modifica datos en Supabase.',receivingRestricted:'Solo administradores y supervisores pueden preparar recepciones.',recvBol:'Bill of Lading (BOL)',recvSupplier:'Proveedor',recvDate:'Fecha de recepción',recvProducts:'Productos de la recepción',recvAddItem:'+ Añadir producto',recvTotalQty:'Total tubos',recvTotalPackages:'Total cajas',recvTotalWeight:'Peso neto declarado (lb)',recvValidate:'Validar borrador',recvReset:'Limpiar formulario',recvProduct:'Producto (SKU)',recvQty:'Tubos',recvPackages:'Cajas',recvWeight:'Peso neto (lb; opcional)',recvAllocations:'Ubicaciones opcionales: Rack / Bin (asignación manual)',recvAddRack:'+ Añadir Rack',recvRemove:'Eliminar',recvRack:'Rack',recvWeightOptional:'Peso Rack (lb; opcional)',recvReady:'Borrador válido. Warehouse registrará todo el peso declarado, aunque quede sin ubicación.',recvMissing:'Completa BOL, proveedor y al menos un producto.',recvMismatch:'Los tubos y cajas en racks no pueden superar la recepción. Se permite inventario sin ubicación.',recvInvalid:'Introduce cantidades enteras positivas, cajas no negativas y pesos no negativos.',recvDuplicate:'No repitas el mismo Rack dentro de un producto.',recvNoRacks:'La asignación a racks es opcional.',recvNoProducts:'No hay productos activos disponibles.',recvWeightOver:'La suma de pesos de los Racks supera el peso declarado.',recvConfirmReset:'¿Limpiar el borrador de prueba?',recvUnsaved:'Este formulario es temporal: no se guarda al cerrar la página.'});
+Object.assign(tr.en,{receiving:'Receiving',receivingDemo:'TEST MODE: this form does NOT save or modify Supabase data.',receivingRestricted:'Only administrators and supervisors can prepare receipts.',recvBol:'Bill of Lading (BOL)',recvSupplier:'Supplier',recvDate:'Receiving date',recvProducts:'Receiving products',recvAddItem:'+ Add product',recvTotalQty:'Total tubes',recvTotalPackages:'Total boxes',recvTotalWeight:'Declared net weight (lb)',recvValidate:'Validate draft',recvReset:'Clear form',recvProduct:'Product (SKU)',recvQty:'Tubes',recvPackages:'Boxes',recvWeight:'Net weight (lb; optional)',recvAllocations:'Optional Rack / Bin placement (manual)',recvAddRack:'+ Add Rack',recvRemove:'Remove',recvRack:'Rack',recvWeightOptional:'Rack weight (lb; optional)',recvReady:'Valid draft. Warehouse will receive all declared weight, including unassigned weight.',recvMissing:'Enter BOL, supplier and at least one product.',recvMismatch:'Rack allocations cannot exceed received totals. Unassigned inventory is allowed.',recvInvalid:'Use positive integer quantities, nonnegative boxes and nonnegative weights.',recvDuplicate:'Do not repeat a Rack within one product.',recvNoRacks:'Rack placement is optional.',recvNoProducts:'No active products available.',recvWeightOver:'Allocated Rack weights exceed declared weight.',recvConfirmReset:'Clear this test draft?',recvUnsaved:'This form is temporary and is lost when the page closes.'});
+Object.assign(tr.es,{recvUnassignedLabel:'Sin ubicación asignada en Warehouse',recvTubesShort:'tubos',recvBoxesShort:'cajas'});
+Object.assign(tr.en,{recvUnassignedLabel:'Unassigned in Warehouse',recvTubesShort:'tubes',recvBoxesShort:'boxes'});
+let receivingItems=[];
+const recvUid=()=>String(Date.now())+'_'+Math.random().toString(36).slice(2);
+const recvNewItem=()=>({key:recvUid(),product:'',quantity:'',packages:'0',weight:'',allocations:[]});
+function recvEl(tag,attrs={},value=''){const e=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==='className')e.className=v;else e.setAttribute(k,v)}if(value)e.textContent=value;return e}
+function recvField(parent,labelText,value,callback,type='text',opts=null){const wrap=recvEl('div');const label=recvEl('label',{},labelText);const input=opts?recvEl('select'):recvEl('input',{type});if(opts){const placeholder=recvEl('option',{value:''},t('choose'));input.append(placeholder);opts.forEach(o=>input.append(recvEl('option',{value:o.id},o.name)));}else if(type==='number'){input.type='text';input.inputMode='decimal';input.dataset.numberFormat='decimal';}input.value=value;input.addEventListener('input',e=>{callback(e.target.value);recvTotals()});wrap.append(label,input);parent.append(wrap);return input}
+function recvTotals(){let q=0,p=0,w=0;for(const x of receivingItems){q+=numberFromInput(x.quantity)||0;p+=numberFromInput(x.packages)||0;w+=numberFromInput(x.weight)||0;}$('recvSumQty').textContent=q.toLocaleString();$('recvSumPackages').textContent=p.toLocaleString();$('recvSumWeight').textContent=w.toLocaleString(undefined,{maximumFractionDigits:2});
+ document.querySelectorAll('[data-recv-unassigned]').forEach(el=>{
+  const x=receivingItems[Number(el.dataset.recvUnassigned)];if(!x)return;
+  const q=numberFromInput(x.quantity)||0,p=numberFromInput(x.packages)||0;
+  const assignedQ=x.allocations.reduce((s,a)=>s+(numberFromInput(a.quantity)||0),0);
+  const assignedP=x.allocations.reduce((s,a)=>s+(numberFromInput(a.packages)||0),0);
+  const assignedW=x.allocations.reduce((s,a)=>s+(numberFromInput(a.weight)||0),0);
+  const totalW=x.weight===''?null:numberFromInput(x.weight);
+  const nf=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:2});
+  el.textContent=t('recvUnassignedLabel')+': '+nf(q-assignedQ)+' '+t('recvTubesShort')+' · '+nf(p-assignedP)+' '+t('recvBoxesShort')+' · '+(totalW===null?'—':nf(totalW-assignedW))+' lb';
+ });}
+function recvRender(){const root=$('recvItems');root.replaceChildren();const products=cache.products.filter(p=>p.active!==false).map(p=>({id:p.id,name:p.sku||p.id}));const racks=cache.warehouse_locations.filter(l=>l.active!==false).map(l=>({id:l.id,name:l.name||l.id}));receivingItems.forEach((item,index)=>{const card=recvEl('div',{className:'panel',style:'background:#f8fafc;margin-top:12px'});const heading=recvEl('h3',{},'#'+(index+1));card.append(heading);const remove=recvEl('button',{type:'button',className:'secondary'},t('recvRemove'));remove.onclick=()=>{receivingItems=receivingItems.filter(i=>i.key!==item.key);recvRender()};card.append(remove);recvField(card,t('recvProduct'),item.product,v=>item.product=v,'text',products);recvField(card,t('recvQty'),item.quantity,v=>item.quantity=v,'number');recvField(card,t('recvPackages'),item.packages,v=>item.packages=v,'number');const weightInput=recvField(card,t('recvWeight'),item.weight,v=>item.weight=v,'number');weightInput.step='any';card.append(recvEl('h4',{},t('recvAllocations')));item.allocations.forEach((a,j)=>{const block=recvEl('div',{style:'border-top:1px solid #d6e1eb;margin-top:12px;padding-top:8px'});block.append(recvEl('strong',{},t('recvRack')+' '+(j+1)));recvField(block,t('recvRack'),a.rack,v=>a.rack=v,'text',racks);recvField(block,t('recvQty'),a.quantity,v=>a.quantity=v,'number');recvField(block,t('recvPackages'),a.packages,v=>a.packages=v,'number');const aw=recvField(block,t('recvWeightOptional'),a.weight,v=>a.weight=v,'number');aw.step='any';const del=recvEl('button',{type:'button',className:'secondary'},t('recvRemove'));del.onclick=()=>{item.allocations=item.allocations.filter(x=>x.key!==a.key);recvRender()};block.append(del);card.append(block)});const add=recvEl('button',{type:'button'},t('recvAddRack'));add.onclick=()=>{item.allocations.push({key:recvUid(),rack:'',quantity:'',packages:'0',weight:''});recvRender()};card.append(add);const summary=recvEl('p',{style:'padding:9px 12px;background:#e9f2ff;border-radius:7px;font-weight:600'});summary.dataset.recvUnassigned=String(index);card.append(summary);root.append(card)});recvTotals();}
+$('recvAddItem').onclick=()=>{receivingItems.push(recvNewItem());recvRender()};
+$('recvReset').onclick=()=>{if(!confirm(t('recvConfirmReset')))return;receivingItems=[recvNewItem()];$('recvBol').value='';$('recvSupplier').value='';showMessage('recvMessage','');try{localStorage.removeItem(RECV_DRAFT_KEY)}catch(e){}recvRender()};
+function recvCheck(){const fail=k=>{showMessage('recvMessage',t(k));return false;};if(!$('recvBol').value.trim()||!$('recvSupplier').value.trim()||!receivingItems.length)return fail('recvMissing');if(!cache.products.some(p=>p.active!==false))return fail('recvNoProducts');for(const x of receivingItems){const q=numberFromInput(x.quantity),p=numberFromInput(x.packages),w=x.weight===''?null:numberFromInput(x.weight);if(!x.product||!Number.isSafeInteger(q)||q<=0||!Number.isSafeInteger(p)||p<0||(w!==null&&(!Number.isFinite(w)||w<0)))return fail('recvInvalid');const seen=new Set();let aq=0,ap=0,aw=0;for(const a of x.allocations){const n=numberFromInput(a.quantity),b=numberFromInput(a.packages),z=a.weight===''?null:numberFromInput(a.weight);if(!a.rack||!Number.isSafeInteger(n)||n<=0||!Number.isSafeInteger(b)||b<0||(z!==null&&(!Number.isFinite(z)||z<0)))return fail('recvInvalid');if(seen.has(a.rack))return fail('recvDuplicate');seen.add(a.rack);aq+=n;ap+=b;aw+=z||0;}if(aq>q||ap>p)return fail('recvMismatch');if((w!==null&&aw>w+0.00001)||(w===null&&aw>0))return fail('recvWeightOver');}showMessage('recvMessage',t('recvReady'),true);return true;}
+$('recvValidate').onclick=()=>recvCheck();
+// Browser-only draft storage: no stock writes and no Supabase draft table assumed.
+const RECV_DRAFT_KEY='tube_inventory_receiving_draft_v1';
+Object.assign(tr.es,{recvSaveDraft:'Guardar borrador',recvPost:'Contabilizar Receiving',recvSavedLocal:'Borrador guardado en este navegador. No se ha guardado en Supabase ni modificado inventario.',recvRestored:'Se recuperó el borrador guardado en este navegador. No está contabilizado.',recvSaveFailed:'No se pudo guardar el borrador en este navegador: ',recvPostPending:'Contabilizar Receiving está bloqueado hasta conectar y verificar el registro seguro en Supabase.',receivingDemo:'MODO SEGURO: puedes guardar borradores en este navegador. Contabilizar Receiving permanece bloqueado; no modifica Supabase.',recvUnsaved:'Los borradores guardados se conservan solamente en este navegador.'});
+Object.assign(tr.en,{recvSaveDraft:'Save draft',recvPost:'Post Receiving',recvSavedLocal:'Draft saved in this browser only. Nothing was saved to Supabase and inventory was not changed.',recvRestored:'Saved draft restored from this browser. It has not been posted.',recvSaveFailed:'Unable to save draft in this browser: ',recvPostPending:'Posting Receiving is blocked until the secure Supabase posting flow is connected and verified.',receivingDemo:'SAFE MODE: you can save drafts in this browser. Posting Receiving remains disabled; it does not change Supabase.',recvUnsaved:'Saved drafts remain only in this browser.'});
+$('recvSaveDraft').onclick=()=>{
+ if(!['admin','supervisor'].includes(currentRole))return;
+ if(!recvCheck())return;
+ try{
+  const draft={version:1,bol:$('recvBol').value.trim(),supplier:$('recvSupplier').value.trim(),date:$('recvDate').value,items:receivingItems};
+  localStorage.setItem(RECV_DRAFT_KEY,JSON.stringify(draft));
+  showMessage('recvMessage',t('recvSavedLocal'),true);
+ }catch(err){showMessage('recvMessage',t('recvSaveFailed')+err.message)}
+};
+$('recvPost').onclick=()=>showMessage('recvMessage',t('recvPostPending'));
+function recvRestoreDraft(){
+ try{
+  const raw=localStorage.getItem(RECV_DRAFT_KEY);if(!raw)return;
+  const draft=JSON.parse(raw);
+  if(draft?.version!==1||!Array.isArray(draft.items))return;
+  $('recvBol').value=String(draft.bol||'');$('recvSupplier').value=String(draft.supplier||'');
+  if(/^\d{4}-\d{2}-\d{2}$/.test(draft.date||''))$('recvDate').value=draft.date;
+  receivingItems=draft.items;recvRender();showMessage('recvMessage',t('recvRestored'),true);
+ }catch(err){showMessage('recvMessage',t('recvSaveFailed')+err.message)}
+}
+const recvPriorRender=render;render=function(){recvPriorRender();$('receivingRestricted').classList.toggle('hidden',['admin','supervisor'].includes(currentRole));$('receivingEditor').classList.toggle('hidden',!['admin','supervisor'].includes(currentRole));if(activeView==='receiving')recvRender()};
+const recvPriorTranslate=translate;translate=function(){recvPriorTranslate();recvRender()};
+receivingItems=[recvNewItem()];$('recvDate').value=new Date().toLocaleDateString('en-CA');recvRestoreDraft();
+
+ Object.assign(tr.es,{catalogLoadError:'No se pudo cargar el catálogo de medidas: '});Object.assign(tr.en,{catalogLoadError:'Unable to load the measurement catalog: '});
+
+ // OD and Wall catalogs: authorized admin additions only, never alter existing products.
+ Object.assign(tr.es,{measureTitle:'Administrar medidas OD y Wall',measureHelp:'Selecciona una medida existente o añade una nueva. Las medidas anteriores siguen disponibles.',newOd:'Nuevo OD (pulgadas)',newWall:'Nuevo Wall (pulgadas)',addOd:'+ Añadir OD',addWall:'+ Añadir Wall',measureInvalid:'Introduce una medida positiva válida (por ejemplo 2.125 o .042).',measureExists:'Esta medida ya está registrada. Se ha seleccionado en la lista.',measureConfirm:'¿Añadir esta medida al catálogo de Supabase?',measureSaved:'Medida añadida al catálogo. Ya aparece en la lista.',measureDenied:'Supabase rechazó la operación. Verifica los permisos de inserción del catálogo; no se modificaron productos ni inventario.',measureError:'No se pudo guardar la medida: '});
+ Object.assign(tr.en,{measureTitle:'Manage OD and Wall sizes',measureHelp:'Select an existing size or add a new one. Previous sizes remain available.',newOd:'New OD (inches)',newWall:'New Wall (inches)',addOd:'+ Add OD',addWall:'+ Add Wall',measureInvalid:'Enter a valid positive size (for example 2.125 or .042).',measureExists:'This size is already registered and has been selected.',measureConfirm:'Add this size to the Supabase catalog?',measureSaved:'Size added to the catalog and available in the dropdown.',measureDenied:'Supabase rejected the operation. Check catalog insert permissions; no products or inventory were changed.',measureError:'Could not save size: '});
+ function measureCanonical(value){
+   const raw=String(value).trim().replace(',','.');
+   if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(raw))return null;
+   const n=Number(raw);if(!Number.isFinite(n)||n<=0||n>1000)return null;
+   return String(n).replace(/^0\./,'.');
+ }
+ function measureOptions(category,selectId){
+   const select=$(selectId),previous=select.value;
+   const options=(cache.catalog_options||[]).filter(o=>o.category===category&&o.active!==false).sort((a,b)=>Number(a.value)-Number(b.value));
+   select.replaceChildren();
+   for(const o of options){const option=document.createElement('option');option.value=o.id;option.textContent=o.value+'"';select.append(option)}
+   if(options.some(o=>o.id===previous))select.value=previous;
+ }
+ function renderMeasureCatalog(){
+   $('measureCatalog').classList.toggle('hidden',currentRole!=='admin');
+   measureOptions('od','odSelect');measureOptions('wall','wallSelect');
+ }
+ async function addMeasure(category,inputId,selectId,buttonId){
+   if(!client||currentRole!=='admin')return;
+   const value=measureCanonical($(inputId).value);
+   if(value===null){showMessage('measureMessage',t('measureInvalid'));return;}
+   const existing=(cache.catalog_options||[]).find(o=>o.category===category&&measureCanonical(o.value)===value);
+   if(existing){if(existing.active===false){showMessage('measureMessage',t('measureError')+'Inactive catalog entry already exists.');return;}$(selectId).value=existing.id;showMessage('measureMessage',t('measureExists'),true);return;}
+   if(!confirm(t('measureConfirm')+' '+category.toUpperCase()+' '+value+'"?'))return;
+   const button=$(buttonId);button.disabled=true;
+   try{
+     const {data,error}=await client.from('catalog_options').insert({category,value,active:true}).select('id,category,value,active').single();
+     if(error)throw error;
+     await load();$(selectId).value=data.id;$(inputId).value='';
+     showMessage('measureMessage',t('measureSaved'),true);
+   }catch(err){
+     const msg=err.message||String(err);
+     showMessage('measureMessage',(/permission|policy|row.level|42501|403/i.test(msg)?t('measureDenied')+' ':'')+t('measureError')+msg);
+   }finally{button.disabled=false;}
+ }
+ $('addOd').onclick=()=>addMeasure('od','newOd','odSelect','addOd');
+ $('addWall').onclick=()=>addMeasure('wall','newWall','wallSelect','addWall');
+ const measurePriorRender=render;render=function(){measurePriorRender();renderMeasureCatalog();renderProductActions()};
+
+
+ // Safe admin status actions and local-only form reset/cancel controls.
+ Object.assign(tr.es,{actions:'Acciones',clear:'Limpiar',cancel:'Cancelar',deactivate:'Desactivar',reactivate:'Reactivar',statusConfirm:'¿Confirmas cambiar el estado de este registro?',statusSaved:'Estado actualizado. Se conserva el historial.',statusFailed:'No se pudo cambiar el estado: ',statusBusy:'Procesando…',cancelled:'Cambios sin guardar descartados.',cleared:'Campos limpiados. No se modificó Supabase.',cancelReceiving:'¿Descartar cambios no guardados y recuperar el último borrador local, si existe?',noSavedDraft:'No hay borrador guardado; se limpiará el formulario.'});
+ Object.assign(tr.en,{actions:'Actions',clear:'Clear',cancel:'Cancel',deactivate:'Deactivate',reactivate:'Reactivate',statusConfirm:'Confirm changing this record status?',statusSaved:'Status updated. History is preserved.',statusFailed:'Could not change status: ',statusBusy:'Working…',cancelled:'Unsaved changes discarded.',cleared:'Fields cleared. Supabase was not modified.',cancelReceiving:'Discard unsaved changes and restore the last local draft, if any?',noSavedDraft:'No saved draft; the form will be cleared.'});
+ function makeStatusAction(table,record){
+   const cell=document.createElement('td');
+   if(currentRole!=='admin'){cell.textContent='—';return cell;}
+   const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent=record.active===false?t('reactivate'):t('deactivate');
+   btn.setAttribute('aria-label',btn.textContent+' '+(record.sku||record.name||record.id));
+   btn.onclick=async()=>{
+     const targetActive=record.active===false;
+     if(!window.confirm(t('statusConfirm')+'\n'+(record.sku||record.name||record.id)+' → '+(targetActive?t('active'):t('inactive'))))return;
+     btn.disabled=true;btn.textContent=t('statusBusy');
+     try{
+       const {error}=await client.rpc('set_inventory_record_active',{p_table:table,p_record_id:record.id,p_active:targetActive});
+       if(error)throw error;
+       await load();showMessage('appMessage',t('statusSaved'),true);
+     }catch(err){showMessage('appMessage',t('statusFailed')+(err.message||String(err)));btn.disabled=false;btn.textContent=targetActive?t('reactivate'):t('deactivate');}
+   };cell.append(btn);return cell;
+ }
+ function renderProductActions(){
+   const body=$('productsBody');
+   const trs=Array.from(body.querySelectorAll('tr'));
+   cache.products.forEach((product,i)=>{if(trs[i])trs[i].append(makeStatusAction('products',product));});
+ }
+ function clearOperation(){
+   $('operationForm').reset();['opQuantity','opReason','opReference','exitEmployee'].forEach(id=>$(id).value='');
+   showMessage('opMessage','');showMessage('verifyWarehouseResult','');updateOperationLayout();
+ }
+ $('opClear').onclick=()=>{clearOperation();showMessage('opMessage',t('cleared'),true)};
+ $('opCancel').onclick=()=>{clearOperation();showMessage('opMessage',t('cancelled'),true)};
+ $('deptClear').onclick=()=>{$('departmentName').value='';showMessage('departmentMessage',t('cleared'),true)};
+ $('deptCancel').onclick=()=>{$('departmentForm').reset();showMessage('departmentMessage',t('cancelled'),true)};
+ $('locationClear').onclick=()=>{$('locationName').value='';$('locationType').selectedIndex=0;showMessage('locationMessage',t('cleared'),true)};
+ $('locationCancel').onclick=()=>{$('locationForm').reset();showMessage('locationMessage',t('cancelled'),true)};
+ for(const [clearId,cancelId,inputId] of [['clearOd','cancelOd','newOd'],['clearWall','cancelWall','newWall']]){
+   $(clearId).onclick=()=>{$(inputId).value='';showMessage('measureMessage',t('cleared'),true)};
+   $(cancelId).onclick=()=>{$(inputId).value='';showMessage('measureMessage',t('cancelled'),true)};
+ }
+ $('recvCancel').onclick=()=>{
+   if(!window.confirm(t('cancelReceiving')))return;
+   receivingItems=[recvNewItem()];$('recvBol').value='';$('recvSupplier').value='';$('recvDate').value=new Date().toLocaleDateString('en-CA');
+   try{
+     const raw=localStorage.getItem(RECV_DRAFT_KEY);
+     if(raw){const draft=JSON.parse(raw);if(draft?.version===1&&Array.isArray(draft.items)){
+       $('recvBol').value=String(draft.bol||'');$('recvSupplier').value=String(draft.supplier||'');$('recvDate').value=draft.date||'';
+       receivingItems=draft.items;
+     }}
+   }catch(e){}
+   recvRender();showMessage('recvMessage',t('cancelled'),true);
+ };
+ // Never offer inactive departments for new operations; retain them in historical displays.
+ const safePriorRenderOperationChoices=renderOperationChoices;
+ renderOperationChoices=function(){safePriorRenderOperationChoices();for(const id of ['opFrom','opTo']){
+   const select=$(id);for(const option of Array.from(select.options)){
+     if(option.value&&cache.departments.some(d=>d.id===option.value&&d.active===false))option.remove();
+   }
+ }};
+
+
+// PRECUT inventory report. Read-only: no stock mutations or receiving posts.
+Object.assign(tr.es,{precutReport:'Reporte PRECUT',precutReportNote:'Inventario por proveedor, OD, Wall, longitud, material y departamento. Los productos sin existencias aparecen en cero.',supplier:'Proveedor',prReload:'Actualizar reporte',prExcel:'Exportar a Excel (.xlsx)',prTotalLb:'Peso neto (lb)',prConfirmed:'Libras confirmadas',prPending:'Peso pendiente',prAll:'Todos',prLoadError:'No se pudo cargar el reporte: ',prExportError:'No se pudo exportar a Excel: ',prNoData:'No hay filas para exportar.',prLoaded:'Reporte actualizado.'});
+Object.assign(tr.en,{precutReport:'PRECUT Report',precutReportNote:'Inventory by supplier, OD, Wall, length, material and department. Products with no stock appear as zero.',supplier:'Supplier',prReload:'Refresh report',prExcel:'Export to Excel (.xlsx)',prTotalLb:'Net weight (lb)',prConfirmed:'Confirmed pounds',prPending:'Weight pending',prAll:'All',prLoadError:'Unable to load report: ',prExportError:'Unable to export to Excel: ',prNoData:'No rows to export.',prLoaded:'Report updated.'});
+let precutReportRows=[],precutReportLoaded=false;
+const prFields=[['prSupplier','proveedor'],['prOd','od'],['prWall','wall'],['prLength','longitud'],['prMaterial','material'],['prDepartment','departamento']];
+function prFormat(n){return Number(n||0).toLocaleString(lang==='es'?'es-US':'en-US',{maximumFractionDigits:2})}
+function prFilters(){for(const [id,key] of prFields){const el=$(id),before=el.value;const vals=[...new Set(precutReportRows.map(r=>String(r[key]??'—')))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));el.replaceChildren();el.add(new Option(t('prAll'),''));vals.forEach(v=>el.add(new Option(v,v)));el.value=vals.includes(before)?before:'';}}
+function prFiltered(){return precutReportRows.filter(r=>prFields.every(([id,key])=>!$(id).value||String(r[key]??'—')===$(id).value))}
+function prRender(){if(!precutReportLoaded)return;const list=prFiltered(),body=$('prBody');body.replaceChildren();let tubes=0,packages=0,lb=0;for(const r of list){packages+=Number(r.paquetes)||0;tubes+=Number(r.tubos)||0;lb+=Number(r.libras_netas)||0;const trEl=document.createElement('tr');[r.sku,r.proveedor,r.od,r.wall,r.longitud,r.material,r.departamento,prFormat(r.paquetes),prFormat(r.tubos),prFormat(r.libras_netas),prFormat(r.libras_confirmadas),r.registros_peso_pendiente].forEach(v=>trEl.append(td(v)));body.append(trEl)}if(!list.length){const trEl=document.createElement('tr'),cell=td(t('empty'));cell.colSpan=12;trEl.append(cell);body.append(trEl)}$('prPackages').textContent=prFormat(packages);$('prTubes').textContent=prFormat(tubes);$('prLb').textContent=prFormat(lb)}
+async function prLoad(){if(!client)return;showMessage('prMessage',t('loading'),true);try{const all=[];let start=0;while(true){const {data,error}=await client.from('vw_precut_inventory_report').select('sku,proveedor,od,wall,longitud,material,departamento,paquetes,tubos,libras_netas,libras_confirmadas,registros_peso_pendiente').order('sku').range(start,start+999);if(error)throw error;all.push(...(data||[]));if(!data||data.length<1000)break;start+=1000;if(start>=100000)throw new Error('Too many rows');}precutReportRows=all;precutReportLoaded=true;prFilters();prRender();showMessage('prMessage',t('prLoaded'),true)}catch(e){precutReportLoaded=false;showMessage('prMessage',t('prLoadError')+e.message)}}
+prFields.forEach(([id])=>$(id).addEventListener('change',prRender));$('prReload').onclick=prLoad;
+$('prExcel').onclick=async()=>{try{const data=prFiltered();if(!data.length){showMessage('prMessage',t('prNoData'));return}if(!window.XLSX)throw new Error('Excel library unavailable. Check internet connection.');const headings=['SKU',t('supplier'),'OD','Wall',t('length'),t('material'),t('department'),t('recvTotalPackages'),t('recvTotalQty'),t('prTotalLb'),t('prConfirmed'),t('prPending')];const records=data.map(r=>[r.sku,r.proveedor,r.od,r.wall,r.longitud,r.material,r.departamento,Number(r.paquetes)||0,Number(r.tubos)||0,Number(r.libras_netas)||0,Number(r.libras_confirmadas)||0,Number(r.registros_peso_pendiente)||0]);const sheet=XLSX.utils.aoa_to_sheet([headings,...records]);sheet['!cols']=[{wch:26},{wch:18},{wch:10},{wch:10},{wch:12},{wch:16},{wch:22},{wch:14},{wch:14},{wch:18},{wch:20},{wch:17}];sheet['!autofilter']={ref:sheet['!ref']};const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,sheet,'PRECUT');XLSX.writeFile(wb,'inventario_precut_'+new Date().toISOString().slice(0,10)+'.xlsx')}catch(e){showMessage('prMessage',t('prExportError')+e.message)}};
+const prOriginalRender=render;render=function(){prOriginalRender();if(activeView==='precutReport'){if(!precutReportLoaded)prLoad();else prRender()}};
+const prOriginalTranslate=translate;translate=function(){prOriginalTranslate();if(precutReportLoaded){prFilters();prRender()}};
+const prOriginalLoad=load;load=async function(){await prOriginalLoad();if(precutReportLoaded){precutReportLoaded=false;if(activeView==='precutReport')await prLoad()}};
+
+// Supabase Receiving: save draft, then explicitly post the exact saved UUID.
+Object.assign(tr.es,{receivingDemo:'Borradores: se guardan en Supabase. Contabilizar inventario permanece bloqueado.',recvSavedCloud:'Borrador guardado en Supabase. ID: ',recvSavingCloud:'Guardando borrador en Supabase…'});
+Object.assign(tr.en,{receivingDemo:'Drafts are saved in Supabase. Inventory posting remains disabled.',recvSavedCloud:'Draft saved in Supabase. ID: ',recvSavingCloud:'Saving draft to Supabase…'});
+let recvSavedId=null,recvDirty=true,recvBusy=false;
+Object.assign(tr.es,{recvPostConfirm:'¿Contabilizar esta recepción en el inventario real? Esta operación sumará tubos a Warehouse y Racks y registrará movimientos. No se puede deshacer desde este formulario.',recvPostBusy:'Contabilizando Receiving…',recvPostDone:'Recepción contabilizada correctamente. Inventario actualizado. ID: ',recvPostError:'No se pudo contabilizar: ',recvPostFirst:'Primero guarda el borrador en Supabase. Si cambias algo, guárdalo nuevamente.',recvSavedEdit:'Cambios sin guardar. Vuelve a guardar el borrador antes de contabilizar.'});
+Object.assign(tr.en,{recvPostConfirm:'Post this receiving to real inventory? This will add tubes to Warehouse and Racks and record movements. It cannot be undone from this form.',recvPostBusy:'Posting Receiving…',recvPostDone:'Receiving posted successfully. Inventory updated. ID: ',recvPostError:'Unable to post: ',recvPostFirst:'First save the draft in Supabase. If you edit anything, save again.',recvSavedEdit:'Unsaved changes. Save the draft again before posting.'});
+function recvSyncPost(){const b=$('recvPost');b.disabled=recvBusy||recvDirty||!recvSavedId||!['admin','supervisor'].includes(currentRole);b.title=b.disabled?t('recvPostFirst'):'';}
+function recvMarkDirty(){if(recvBusy)return;recvDirty=true;recvSavedId=null;recvSyncPost();}
+// Any edit to the receiving form invalidates the previously saved UUID.
+$('receivingEditor').addEventListener('input',e=>{if(e.target.matches('input,select,textarea'))recvMarkDirty()});
+$('receivingEditor').addEventListener('change',e=>{if(e.target.matches('input,select,textarea'))recvMarkDirty()});
+$('recvAddItem').addEventListener('click',recvMarkDirty);
+$('recvItems').addEventListener('click',e=>{if(e.target.closest('button'))recvMarkDirty()});
+$('recvReset').addEventListener('click',recvMarkDirty);
+$('recvCancel').addEventListener('click',recvMarkDirty);
+$('recvPost').onclick=async()=>{
+ if(recvBusy||recvDirty||!recvSavedId){showMessage('recvMessage',t('recvPostFirst'));return;}
+ if(!client||!['admin','supervisor'].includes(currentRole))return;
+ if(!confirm(t('recvPostConfirm')))return;
+ const id=recvSavedId;
+ recvBusy=true;recvSyncPost();$('recvSaveDraft').disabled=true;
+ showMessage('recvMessage',t('recvPostBusy'),true);
+ try{
+   const {error}=await client.rpc('post_warehouse_receiving',{p_receiving_id:id});
+   if(error)throw error;
+   recvSavedId=null;recvDirty=true;
+   showMessage('recvMessage',t('recvPostDone')+id,true);
+   await load();
+ }catch(err){showMessage('recvMessage',t('recvPostError')+(err.message||String(err)));}
+ finally{recvBusy=false;$('recvSaveDraft').disabled=false;recvSyncPost();}
+};
+$('recvSaveDraft').onclick=async()=>{
+ if(!client||!['admin','supervisor'].includes(currentRole))return;
+ if(!recvCheck())return;
+ const button=$('recvSaveDraft');button.disabled=true;recvBusy=true;recvSyncPost();
+ showMessage('recvMessage',t('recvSavingCloud'),true);
+ try{
+   const payload=receivingItems.map(x=>({
+     product_id:x.product,quantity:numberFromInput(x.quantity),packages:numberFromInput(x.packages),weight:x.weight===''?null:numberFromInput(x.weight),
+     allocations:x.allocations.map(a=>({location_id:a.rack,quantity:numberFromInput(a.quantity),packages:numberFromInput(a.packages),weight:a.weight===''?null:numberFromInput(a.weight)}))
+   }));
+   const {data,error}=await client.rpc('save_warehouse_receiving_draft',{
+     p_bol_number:$('recvBol').value.trim(),p_supplier_name:$('recvSupplier').value.trim(),
+     p_received_date:$('recvDate').value||null,p_items:payload
+   });
+   if(error)throw error;
+   showMessage('recvMessage',t('recvSavedCloud')+data,true);
+   // Keep the saved UUID tied to this exact form version.
+   if(!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(String(data||'')))throw new Error('Unexpected receiving ID');
+   recvSavedId=String(data);
+   recvDirty=false;
+   recvSyncPost();
+ }catch(err){showMessage('recvMessage',err.message||String(err));}
+ finally{recvBusy=false;button.disabled=false;recvSyncPost();}
+};
+
+// Read-only retrieval of previously saved Supabase Receiving drafts.
+Object.assign(tr.es,{recvFindTitle:'Buscar recepción guardada',recvFindHelp:'Selecciona un borrador de Supabase para cargar productos y Racks.',recvFindRefresh:'Buscar borradores',recvFindSelect:'Borradores disponibles',recvFindLoad:'Cargar borrador',recvFindEmpty:'No hay borradores disponibles.',recvFindLoading:'Buscando borradores…',recvFindLoadingOne:'Cargando recepción…',recvFindDone:'Borrador cargado desde Supabase. Revisa todos los datos antes de contabilizar.',recvFindError:'No se pudo cargar la recepción: ',recvFindChoose:'Selecciona primero un borrador.',recvFindDiscard:'¿Reemplazar el formulario actual con el borrador seleccionado? Se perderán los cambios no guardados.',receivingDemo:'Receiving suma el material completo a Warehouse. Los racks son opcionales y manuales; las libras sin ubicar permanecen en Warehouse.'});
+Object.assign(tr.en,{recvFindTitle:'Find saved receiving',recvFindHelp:'Select a Supabase draft to load products and Racks.',recvFindRefresh:'Find drafts',recvFindSelect:'Available drafts',recvFindLoad:'Load draft',recvFindEmpty:'No drafts available.',recvFindLoading:'Finding drafts…',recvFindLoadingOne:'Loading receiving…',recvFindDone:'Draft loaded from Supabase. Review all details before posting.',recvFindError:'Could not load receiving: ',recvFindChoose:'Select a draft first.',recvFindDiscard:'Replace the current form with this draft? Unsaved changes will be lost.',receivingDemo:'Receiving credits all material to Warehouse. Rack placement is optional and manual; unassigned pounds remain in Warehouse.'});
+let recvDraftChoices=[];
+async function recvFindDrafts(){
+ if(!client||!['admin','supervisor'].includes(currentRole))return;
+ const button=$('recvFindRefresh');button.disabled=true;
+ showMessage('recvFindMessage',t('recvFindLoading'),true);
+ try{
+  const {data,error}=await client.from('receivings').select('id,bol_number,supplier_name,status,created_at').eq('status','draft').order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  recvDraftChoices=data||[];
+  const select=$('recvFindSelect');select.replaceChildren();
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=t('choose');select.append(placeholder);
+  recvDraftChoices.forEach(r=>{const option=document.createElement('option');option.value=r.id;option.textContent=(r.bol_number||'—')+' — '+(r.supplier_name||'—')+' — '+new Date(r.created_at).toLocaleString();select.append(option)});
+  showMessage('recvFindMessage',recvDraftChoices.length?'':t('recvFindEmpty'),!recvDraftChoices.length);
+ }catch(err){showMessage('recvFindMessage',t('recvFindError')+(err.message||String(err)));}
+ finally{button.disabled=false;}
+}
+$('recvFindRefresh').onclick=recvFindDrafts;
+$('recvFindLoad').onclick=async()=>{
+ const id=$('recvFindSelect').value;
+ if(!id){showMessage('recvFindMessage',t('recvFindChoose'));return;}
+ if(!client||!['admin','supervisor'].includes(currentRole)||recvBusy)return;
+ if(!confirm(t('recvFindDiscard')))return;
+ const button=$('recvFindLoad');button.disabled=true;recvBusy=true;recvSyncPost();
+ showMessage('recvFindMessage',t('recvFindLoadingOne'),true);
+ try{
+  const {data:r,error:re}=await client.from('receivings').select('id,bol_number,supplier_name,received_date,status').eq('id',id).single();
+  if(re)throw re;
+  if(r.status!=='draft')throw new Error('Receiving is no longer a draft.');
+  const {data:items,error:ie}=await client.from('receiving_items').select('id,product_id,total_quantity,total_packages,declared_weight_lb').eq('receiving_id',id);
+  if(ie)throw ie;
+  if(!items?.length)throw new Error('Receiving has no items.');
+  const {data:allocations,error:ae}=await client.from('receiving_allocations').select('receiving_item_id,location_id,quantity,packages,weight_lb').in('receiving_item_id',items.map(i=>i.id));
+  if(ae)throw ae;
+  const mapped=items.map(i=>({key:recvUid(),product:i.product_id,quantity:String(i.total_quantity),packages:String(i.total_packages??0),weight:i.declared_weight_lb==null?'':String(i.declared_weight_lb),allocations:(allocations||[]).filter(a=>a.receiving_item_id===i.id).map(a=>({key:recvUid(),rack:a.location_id,quantity:String(a.quantity),packages:String(a.packages??0),weight:a.weight_lb==null?'':String(a.weight_lb)}))}));
+  // Validate references against the currently loaded catalogs before allowing posting.
+  if(mapped.some(i=>!cache.products.some(p=>p.id===i.product&&p.active!==false)||i.allocations.some(a=>!cache.warehouse_locations.some(l=>l.id===a.rack&&l.active!==false))))throw new Error('A product or Rack in this draft is missing or inactive.');
+  $('recvBol').value=r.bol_number||'';$('recvSupplier').value=r.supplier_name||'';$('recvDate').value=r.received_date||'';
+  receivingItems=mapped;recvRender();
+  recvSavedId=id;recvDirty=false;
+  if(!recvCheck()){recvDirty=true;recvSavedId=null;throw new Error('The saved draft did not pass form validation.');}
+  showMessage('recvFindMessage',t('recvFindDone'),true);
+  showMessage('recvMessage',t('recvFindDone'),true);
+ }catch(err){recvDirty=true;recvSavedId=null;showMessage('recvFindMessage',t('recvFindError')+(err.message||String(err)));}
+ finally{recvBusy=false;button.disabled=false;recvSyncPost();}
+};
+// Populate the draft list on entering Receiving, after session/cache are loaded.
+const recvFindPriorRender=render;
+render=function(){recvFindPriorRender();$('recvLookup').classList.toggle('hidden',!['admin','supervisor'].includes(currentRole));};
+const recvFindNav=document.querySelector('[data-view="receiving"]');
+recvFindNav.addEventListener('click',()=>{if(['admin','supervisor'].includes(currentRole))recvFindDrafts();});
+
+// Production report: read-only, based on existing products, stock, departments and catalog.
+Object.assign(tr.es,{productionReport:'Reporte Producción',productionNote:'Existencias registradas de productos RAW y Drawn por departamento. Las libras y paquetes no se calculan sin datos verificados.',productionType:'Tipo',productionRows:'Registros mostrados',productionUnknown:'Sin clasificar'});
+Object.assign(tr.en,{productionReport:'Production Report',productionNote:'Recorded RAW and Drawn inventory by department. Pounds and packages are not estimated without verified data.',productionType:'Type',productionRows:'Displayed records',productionUnknown:'Unclassified'});
+const pdFields=[['pdType','tipo'],['pdOd','od'],['pdWall','wall'],['pdLength','longitud'],['pdMaterial','material'],['pdDepartment','departamento']];
+let pdRows=[];
+function pdCategory(p){const sku=String(p.sku||'').toUpperCase();if(/(^|[-_ ])PRECUT([-_ ]|$)/.test(sku))return null;if(/(^|[-_ ])DRAWN?([-_ ]|$)/.test(sku))return 'Drawn';if(/(^|[-_ ])RAW([-_ ]|$)/.test(sku))return 'RAW';return null;}
+function pdBuild(){const catalog=new Map(cache.catalog_options.map(x=>[x.id,x.value]));const departments=new Map(cache.departments.map(x=>[x.id,x.name]));const stockByProduct=new Map();for(const x of cache.stock){if(!stockByProduct.has(x.product_id))stockByProduct.set(x.product_id,[]);stockByProduct.get(x.product_id).push(x)}pdRows=[];for(const p of cache.products){const tipo=pdCategory(p);if(!tipo)continue;const base={sku:p.sku||p.id,tipo,od:catalog.get(p.od_id)||'—',wall:catalog.get(p.wall_id)||'—',longitud:catalog.get(p.length_id)||'—',material:catalog.get(p.material_id)||'—'};const stocks=stockByProduct.get(p.id)||[];if(!stocks.length)pdRows.push({...base,departamento:'—',tubos:0});else for(const x of stocks)pdRows.push({...base,departamento:departments.get(x.department_id)||'—',tubos:numberFromInput(x.quantity)||0});}pdRows.sort((a,b)=>a.sku.localeCompare(b.sku)||a.departamento.localeCompare(b.departamento));}
+function pdFilters(){for(const [id,key] of pdFields){const el=$(id),before=el.value,values=[...new Set(pdRows.map(r=>String(r[key])))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));el.replaceChildren();el.add(new Option(t('prAll'),''));for(const v of values)el.add(new Option(v,v));el.value=values.includes(before)?before:'';}}
+function pdFiltered(){return pdRows.filter(r=>pdFields.every(([id,key])=>!$(id).value||r[key]===$(id).value));}
+function pdRender(){const filtered=pdFiltered(),body=$('pdBody');body.replaceChildren();for(const r of filtered){const row=document.createElement('tr');[r.sku,r.tipo,r.od,r.wall,r.longitud,r.material,r.departamento,prFormat(r.tubos)].forEach(v=>row.append(td(v)));body.append(row)}if(!filtered.length){const row=document.createElement('tr'),cell=td(t('empty'));cell.colSpan=8;row.append(cell);body.append(row)}$('pdTotal').textContent=prFormat(filtered.reduce((a,r)=>a+r.tubos,0));$('pdCount').textContent=prFormat(filtered.length);}
+function pdRefresh(){pdBuild();pdFilters();pdRender();showMessage('pdMessage',t('prLoaded'),true);}
+pdFields.forEach(([id])=>$(id).addEventListener('change',pdRender));$('pdReload').onclick=async()=>{await load();pdRefresh()};
+$('pdExcel').onclick=()=>{try{const data=pdFiltered();if(!data.length){showMessage('pdMessage',t('prNoData'));return;}if(!window.XLSX)throw new Error('Excel library unavailable');const headings=['SKU',t('productionType'),'OD','Wall',t('length'),t('material'),t('department'),t('recvTotalQty')];const values=data.map(r=>[r.sku,r.tipo,r.od,r.wall,r.longitud,r.material,r.departamento,r.tubos]);const sheet=XLSX.utils.aoa_to_sheet([headings,...values]);sheet['!cols']=[{wch:28},{wch:14},{wch:12},{wch:12},{wch:14},{wch:16},{wch:24},{wch:14}];sheet['!autofilter']={ref:sheet['!ref']};const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,sheet,'Produccion');XLSX.writeFile(book,'inventario_produccion_'+new Date().toISOString().slice(0,10)+'.xlsx');}catch(e){showMessage('pdMessage',t('prExportError')+e.message)}};
+const pdPriorRender=render;render=function(){pdPriorRender();if(activeView==='productionReport'){pdBuild();pdFilters();pdRender();}};
+const pdPriorTranslate=translate;translate=function(){pdPriorTranslate();if(activeView==='productionReport'){pdFilters();pdRender();}};
+
+
+// BLOCK 13: Warehouse weight balances. Read only; separate from tube/package stock.
+Object.assign(tr.es,{warehouseReport:'Reporte Warehouse',warehouseNote:'Balance general de Warehouse — Building 3, en libras. Los pesos del balance general NO se suman a los pesos de Racks; tubos y paquetes se controlan aparte.',warehouseBalance:'Balance (lb)',warehouseRows:'Productos mostrados',warehouseRaw:'RAW (lb)',warehousePrecut:'PRECUT (lb)',warehouseItem:'Item Number',warehouseHistorical:'Las libras históricas movidas a Producción ya están incluidas en el balance perpetuo cuando corresponde. No se vuelven a descontar. Este reporte es de solo lectura.',warehouseMissing:'No hay datos de inventario por peso disponibles.',warehouseDepartmentMissing:'No se encontró el departamento Warehouse activo.',warehouseLoadError:'No se pudo consultar el balance Warehouse: ',warehousePendingLength:'Pendiente'});
+Object.assign(tr.en,{warehouseReport:'Warehouse Report',warehouseNote:'Warehouse — Building 3 general weight balance in pounds. General weight balances are NOT added to rack weights; tubes and packages are tracked separately.',warehouseBalance:'Balance (lb)',warehouseRows:'Displayed products',warehouseRaw:'RAW (lb)',warehousePrecut:'PRECUT (lb)',warehouseItem:'Item Number',warehouseHistorical:'Historical pounds moved to Production are already included in the perpetual balance where applicable. They are not deducted again. This is a read-only report.',warehouseMissing:'No weight inventory data available.',warehouseDepartmentMissing:'The active Warehouse department was not found.',warehouseLoadError:'Unable to load Warehouse balances: ',warehousePendingLength:'Pending'});
+const whFields=[['whType','tipo'],['whSupplier','proveedor'],['whOd','od'],['whWall','wall'],['whLength','largo'],['whMaterial','material']];
+let whRows=[],whLoaded=false,whBusy=false;
+function whBuild(rows){
+ const products=new Map(cache.products.map(p=>[p.id,p]));
+ const cat=new Map(cache.catalog_options.map(c=>[c.id,c.value]));
+ const label=(id)=>id?(cat.get(id)||'—'):'—';
+ whRows=rows.map(r=>{
+  const p=products.get(r.product_id)||{};
+  return {sku:p.sku||r.product_id,item:p.item_number||'—',tipo:String(p.product_type||'—').toUpperCase(),proveedor:label(p.supplier_id),od:label(p.od_id),wall:label(p.wall_id),largo:label(p.length_id),material:label(p.material_id),departamento:'Warehouse',weight:Number(r.weight_lb)||0};
+ }).sort((a,b)=>a.sku.localeCompare(b.sku));
+}
+function whFilters(){for(const [id,key] of whFields){const sel=$(id),old=sel.value,vals=[...new Set(whRows.map(r=>String(r[key])))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));sel.replaceChildren();sel.add(new Option(t('prAll'),''));for(const v of vals)sel.add(new Option(v,v));sel.value=vals.includes(old)?old:'';}}
+function whFiltered(){return whRows.filter(r=>whFields.every(([id,k])=>!$(id).value||String(r[k])===$(id).value));}
+function whRender(){
+ if(!whLoaded)return;
+ const found=whFiltered(),body=$('whBody');body.replaceChildren();
+ for(const r of found){const trEl=document.createElement('tr');[r.sku,r.item,r.tipo,r.proveedor,r.od,r.wall,r.largo,r.material,r.departamento,prFormat(r.weight)].forEach(x=>trEl.append(td(x)));body.append(trEl);}
+ if(!found.length){const trEl=document.createElement('tr'),c=td(t('empty'));c.colSpan=10;trEl.append(c);body.append(trEl);}
+ $('whCount').textContent=prFormat(found.length);
+ $('whTotal').textContent=prFormat(found.reduce((s,r)=>s+r.weight,0));
+ $('whRaw').textContent=prFormat(found.filter(r=>r.tipo==='RAW').reduce((s,r)=>s+r.weight,0));
+ $('whPrecut').textContent=prFormat(found.filter(r=>r.tipo==='PRECUT').reduce((s,r)=>s+r.weight,0));
+}
+async function whLoad(){
+ if(!client||whBusy)return;
+ whBusy=true;$('whReload').disabled=true;showMessage('whMessage',t('loading'),true);
+ try{
+  // Fetch catalogs and products before resolving all product/department IDs.
+  await load();
+  const wh=cache.departments.find(d=>String(d.name||'').trim().toLowerCase()==='warehouse'&&d.active!==false);
+  if(!wh)throw new Error(t('warehouseDepartmentMissing'));
+  let all=[],offset=0;
+  while(true){
+   const {data,error}=await client.from('inventory_weight_balances').select('product_id,department_id,weight_lb').eq('department_id',wh.id).order('product_id').range(offset,offset+999);
+   if(error)throw error;
+   all.push(...(data||[]));
+   if(!data||data.length<1000)break;
+   offset+=1000;
+   if(offset>99000)throw new Error('Too many rows for report');
+  }
+  whBuild(all);whLoaded=true;whFilters();whRender();
+  showMessage('whMessage',!all.length?t('warehouseMissing'):t('prLoaded'),!!all.length);
+ }catch(e){whLoaded=false;whRows=[];showMessage('whMessage',t('warehouseLoadError')+(e.message||String(e)));}
+ finally{whBusy=false;$('whReload').disabled=false;}
+}
+whFields.forEach(([id])=>$(id).addEventListener('change',whRender));
+$('whReload').onclick=whLoad;
+document.querySelector('[data-view="warehouseReport"]').addEventListener('click',whLoad);
+$('whExcel').onclick=()=>{try{
+ const data=whFiltered();if(!whLoaded||!data.length){showMessage('whMessage',t('prNoData'));return;}
+ if(!window.XLSX)throw new Error('Excel library unavailable');
+ const heads=['SKU',t('warehouseItem'),t('productionType'),t('supplier'),'OD','Wall',t('length'),t('material'),t('department'),t('warehouseBalance')];
+ const values=data.map(r=>[r.sku,r.item,r.tipo,r.proveedor,r.od,r.wall,r.largo,r.material,r.departamento,r.weight]);
+ const sheet=XLSX.utils.aoa_to_sheet([heads,...values]);sheet['!cols']=[{wch:28},{wch:15},{wch:14},{wch:18},{wch:12},{wch:12},{wch:14},{wch:16},{wch:18},{wch:19}];sheet['!autofilter']={ref:sheet['!ref']};
+ const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,sheet,'Warehouse LB');XLSX.writeFile(book,'warehouse_building3_libras_'+new Date().toISOString().slice(0,10)+'.xlsx');
+ }catch(e){showMessage('whMessage',t('prExportError')+(e.message||String(e)));}};
+const whPriorTranslate=translate;translate=function(){whPriorTranslate();if(activeView==='warehouseReport'&&whLoaded){whFilters();whRender();}};
+
+
+// BLOCK 14: admin correction controls. All writes go through admin_manage_inventory_record RPC.
+Object.assign(tr.es,{
+ admin14Help:'Como administrador puedes editar, desactivar o recuperar. Los registros con existencias no se pueden desactivar. No se borran movimientos.',
+ admin14Edit:'Editar',admin14Prompt:'Escribe el nuevo nombre o SKU:',admin14EditLocation:'Nuevo nombre del rack / bin / ubicación:',
+ admin14Type:'Tipo de ubicación (Rack, Bin o Location):',admin14Status:'Cambiar estado',admin14Confirm:'¿Confirmas esta operación?',
+ admin14Success:'Cambio aplicado. El historial se conserva.',admin14Failed:'No se pudo completar: ',
+ admin14Missing:'Esta función requiere instalar primero el archivo SQL del Bloque 14 en Supabase.',
+ admin14NoDelete:'No se borra permanentemente: se desactiva para permitir recuperación.',
+ admin14Busy:'Procesando…'
+});
+Object.assign(tr.en,{
+ admin14Help:'Admins can edit, deactivate or restore records. Records with stock cannot be deactivated. Movements are never deleted.',
+ admin14Edit:'Edit',admin14Prompt:'Enter new name or SKU:',admin14EditLocation:'New rack / bin / location name:',
+ admin14Type:'Location type (Rack, Bin or Location):',admin14Status:'Change status',admin14Confirm:'Confirm this operation?',
+ admin14Success:'Change saved. History is preserved.',admin14Failed:'Could not complete: ',
+ admin14Missing:'This feature requires installing the Block 14 SQL file in Supabase first.',
+ admin14NoDelete:'Records are archived, not permanently deleted, so they can be restored.',
+ admin14Busy:'Working…'
+});
+function admin14Button(title, callback){
+ const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=title;
+ b.style.marginRight='6px';b.addEventListener('click',async()=>{
+   if(currentRole!=='admin')return;
+   b.disabled=true;const previous=b.textContent;b.textContent=t('admin14Busy');
+   try{await callback();}finally{b.disabled=false;b.textContent=previous;}
+ });return b;
+}
+async function admin14Run(table,record,action,newValue=null,newType=null){
+ if(!client||currentRole!=='admin')return;
+ const name=record.sku||record.name||record.id;
+ const label=action==='rename'?t('admin14Edit'):(action==='deactivate'?t('deactivate'):t('reactivate'));
+ if(!window.confirm(t('admin14Confirm')+'\n'+label+': '+name+(newValue?' → '+newValue:'')))return;
+ try{
+  const {error}=await client.rpc('admin_manage_inventory_record',{
+    p_table:table,p_record_id:record.id,p_action:action,p_value:newValue,p_location_type:newType
+  });
+  if(error)throw error;
+  await load();showMessage('appMessage',t('admin14Success'),true);
+ }catch(err){
+  let message=err.message||String(err);
+  if(/admin_manage_inventory_record|could not find the function|PGRST202/i.test(message))message=t('admin14Missing');
+  showMessage('appMessage',t('admin14Failed')+message);
+ }
+}
+function admin14Actions(table,record){
+ const cell=document.createElement('td');
+ if(currentRole!=='admin'){cell.textContent='—';return cell;}
+ cell.append(admin14Button(t('admin14Edit'),async()=>{
+   const value=window.prompt(table==='warehouse_locations'?t('admin14EditLocation'):t('admin14Prompt'),record.sku||record.name||'');
+   if(value===null||!value.trim())return;
+   let type=null;
+   if(table==='warehouse_locations'){
+      const proposed=window.prompt(t('admin14Type'),record.location_type||'Rack');
+      if(proposed===null)return;
+      const valid=['Rack','Bin','Location'];
+      type=valid.find(v=>v.toLowerCase()===proposed.trim().toLowerCase());
+      if(!type){showMessage('appMessage','Tipo inválido / Invalid type: Rack, Bin, Location');return;}
+   }
+   await admin14Run(table,record,'rename',value.trim(),type);
+ }));
+ cell.append(admin14Button(record.active===false?t('reactivate'):t('deactivate'),async()=>{
+   await admin14Run(table,record,record.active===false?'reactivate':'deactivate');
+ }));
+ return cell;
+}
+// Override only the admin table renderers; the rest of Block 13 remains untouched.
+renderDepartmentList=function(){
+ const body=$('departmentsBody');body.replaceChildren();
+ const arr=cache.departments.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ if(!arr.length){const r=document.createElement('tr'),c=td(t('empty'));c.colSpan=3;r.append(c);body.append(r);return;}
+ arr.forEach(item=>{const r=document.createElement('tr');r.append(td(item.name),td(item.active===false?t('inactive'):t('active')),admin14Actions('departments',item));body.append(r);});
+};
+renderLocationList=function(){
+ const body=$('locationsBody');body.replaceChildren();
+ const arr=(cache.warehouse_locations||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+ if(!arr.length){const r=document.createElement('tr'),c=td(t('empty'));c.colSpan=4;r.append(c);body.append(r);return;}
+ arr.forEach(item=>{const r=document.createElement('tr');r.append(td(item.name),td(item.location_type),td(item.active===false?t('inactive'):t('active')),admin14Actions('warehouse_locations',item));body.append(r);});
+};
+renderProductActions=function(){
+ const trs=Array.from($('productsBody').querySelectorAll('tr'));
+ cache.products.forEach((item,i)=>{if(trs[i])trs[i].append(admin14Actions('products',item));});
+};
+
+ // Final bilingual labels are now available.
+translate();
+recvSyncPost();
+
+// === BLOCK 15: ADMIN WAREHOUSE CORRECTIONS (no hard deletion) ===
+Object.assign(tr.es,{b15Title:'Correcciones — Administrador',b15Help:'Warehouse total y distribución entre Racks son independientes. Asignar a Rack NO suma al total. Guarda cada corrección con motivo; los movimientos anteriores permanecen intactos.',b15KindLabel:'Tipo de corrección',b15TotalTubes:'Total de tubos Warehouse',b15TotalWeight:'Total de libras Warehouse',b15RackAssignment:'Asignación manual a Rack / Bin',b15RackLabel:'Rack / Bin',b15Qty:'Tubos',b15Packages:'Paquetes',b15Weight:'Libras (lb)',b15Reason:'Motivo de corrección (mínimo 5 caracteres)',b15Reference:'Referencia (opcional)',b15Save:'Confirmar corrección',b15History:'Historial de correcciones',b15Change:'Antes → Después',b15Missing:'Selecciona producto y los valores requeridos.',b15Invalid:'Valor inválido. Verifica tubos, paquetes, libras y motivo (mínimo 5 caracteres).',b15Confirm:'Esta operación CAMBIA inventario real y guarda auditoría. ¿Confirmas?',b15Success:'Corrección registrada. ID: ',b15ReadError:'No se pudieron leer los balances: ',b15Current:'Valores actuales',b15NoExisting:'No existe un balance actual para este producto.',b15Unavailable:'Bloque 15: instala primero su SQL en Supabase.',b15NotYet:'No incluye reversión de recepciones contabilizadas ni movimientos históricos.'});
+Object.assign(tr.en,{b15Title:'Corrections — Administrator',b15Help:'Warehouse totals and Rack allocations are separate. Rack assignment does NOT add to the total. Every correction requires a reason; original movements remain intact.',b15KindLabel:'Correction type',b15TotalTubes:'Warehouse tube total',b15TotalWeight:'Warehouse weight total',b15RackAssignment:'Manual Rack / Bin assignment',b15RackLabel:'Rack / Bin',b15Qty:'Tubes',b15Packages:'Packages',b15Weight:'Pounds (lb)',b15Reason:'Correction reason (minimum 5 characters)',b15Reference:'Reference (optional)',b15Save:'Confirm correction',b15History:'Correction history',b15Change:'Before → After',b15Missing:'Select a product and enter all required values.',b15Invalid:'Invalid value. Check tubes, packages, weight, and reason (minimum 5 characters).',b15Confirm:'This WILL CHANGE live inventory and record an audit. Confirm?',b15Success:'Correction recorded. ID: ',b15ReadError:'Unable to load balances: ',b15Current:'Current values',b15NoExisting:'No balance exists for this product.',b15Unavailable:'Install Block 15 SQL in Supabase first.',b15NotYet:'Reversal of posted receipts and historical movements is not available yet.'});
+Object.assign(tr.es,{b15PreviewMissing:'Selecciona producto y ubicación (si corresponde).',b15PreviewUnset:'Escribe los nuevos valores para ver el cambio antes de guardar.',b15PreviewNotRecorded:'No registrado',b15PreviewTo:'→',b15PreviewSame:'Sin cambios: no se guardará una corrección.',b15PreviewTooMany:'La cantidad en racks excedería el total de Warehouse.',b15PreviewWeightTooMany:'Las libras asignadas excederían el total registrado en Warehouse.',b15PreviewWeightMissing:'No existe un balance general de libras para este producto; no registres un peso inventado.',b15PreviewRackWeightMissing:'No se pueden asignar libras positivas sin un balance general de peso.',b15PreviewBefore:'Antes',b15PreviewAfter:'Después',b15PreviewOtherRack:'Otros racks',b15PreviewInvalid:'Revisa los valores: tubos/paquetes enteros y libras no negativas.',b15PreviewAwaiting:'Esta operación debe validarse en Supabase antes de considerarla guardada.'});
+Object.assign(tr.en,{b15PreviewMissing:'Select a product and rack (if applicable).',b15PreviewUnset:'Enter new values to preview the change before saving.',b15PreviewNotRecorded:'Not recorded',b15PreviewTo:'→',b15PreviewSame:'No changes: no correction will be saved.',b15PreviewTooMany:'Rack-assigned tubes would exceed the Warehouse total.',b15PreviewWeightTooMany:'Rack-assigned pounds would exceed the recorded Warehouse total.',b15PreviewWeightMissing:'No Warehouse weight balance exists for this product; do not enter an invented weight.',b15PreviewRackWeightMissing:'Cannot assign positive pounds without a Warehouse weight balance.',b15PreviewBefore:'Before',b15PreviewAfter:'After',b15PreviewOtherRack:'Other racks',b15PreviewInvalid:'Check values: whole-number tubes/packages and nonnegative pounds.',b15PreviewAwaiting:'Supabase must validate this operation before it is considered saved.'});
+// PATCH 05: Distinguish missing weight records from measured zero and show readable audit entries.
+Object.assign(tr.es,{b15WeightUnregistered:'Peso general no registrado; no introduzcas libras inventadas.',b15PendingRack:'Peso de rack pendiente de registrar'});
+Object.assign(tr.en,{b15WeightUnregistered:'No Warehouse weight balance recorded; do not invent a weight.',b15PendingRack:'Rack weight not yet recorded'});
+let b15Balances={stock:[],weights:[],racks:[],audit:[]};
+const b15Warehouse=()=>cache.departments.find(x=>(x.name||'').trim().toLowerCase()==='warehouse');
+function b15Options(){
+ if(currentRole!=='admin')return;
+ setOptions('b15Product',cache.products,p=>p.sku||p.id);
+ setOptions('b15Rack',(cache.warehouse_locations||[]).filter(l=>l.active!==false),l=>l.name||l.id);
+}
+function b15Mode(){
+ const kind=$('b15Kind').value;
+ $('b15RackRow').classList.toggle('hidden',kind!=='rack_assignment');
+ $('b15PackRow').classList.toggle('hidden',kind!=='rack_assignment');
+ $('b15QtyRow').classList.toggle('hidden',kind==='total_weight');
+ $('b15WeightRow').classList.toggle('hidden',kind==='total_tubes');
+ b15Current();
+}
+function b15Number(value){
+ if(value===null||value===undefined||value==='')return '—';
+ const n=Number(value);
+ return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:2}):String(value);
+}
+// Consolidated Block 15: browser-side preview is informative; server RPC enforces actual rules.
+function b15Preview(){
+ const out=$('b15Preview');if(!out)return;
+ const product=$('b15Product').value,kind=$('b15Kind').value,rack=$('b15Rack').value;
+ const wh=b15Warehouse();
+ if(!product||(kind==='rack_assignment'&&!rack)){out.textContent=t('b15PreviewMissing');return;}
+ const match=x=>x.product_id===product&&x.department_id===wh?.id;
+ const stock=b15Balances.stock.find(match),weightBalance=b15Balances.weights.find(match);
+ const rackEntry=b15Balances.racks.find(x=>match(x)&&x.location_id===rack);
+ const qtyInput=$('b15Qty').value.trim(),packInput=$('b15Packages').value.trim(),weightInput=$('b15Weight').value.trim();
+ const hasQty=kind!=='total_weight',hasWeight=kind!=='total_tubes',hasPack=kind==='rack_assignment';
+ if((hasQty&&!qtyInput)||(hasWeight&&!weightInput)||(hasPack&&!packInput)){out.textContent=t('b15PreviewUnset');return;}
+ const q=hasQty?numberFromInput(qtyInput):null,p=hasPack?numberFromInput(packInput):null,w=hasWeight?numberFromInput(weightInput):null;
+ if((hasQty&&(!Number.isSafeInteger(q)||q<0))||(hasPack&&(!Number.isSafeInteger(p)||p<0))||(hasWeight&&(!Number.isFinite(w)||w<0))){out.textContent=t('b15PreviewInvalid');return;}
+ const noValue=t('b15PreviewNotRecorded');let before,after,warning='';
+ if(kind==='total_tubes'){
+  before=stock?b15Number(stock.quantity):noValue;after=b15Number(q);
+  const assigned=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.quantity||0),0);
+  if(q<assigned)warning=t('b15PreviewTooMany');
+ }else if(kind==='total_weight'){
+  before=weightBalance?b15Number(weightBalance.weight_lb)+' lb':noValue;after=b15Number(w)+' lb';
+  const assigned=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.weight_lb||0),0);
+  if(!weightBalance)warning=t('b15PreviewWeightMissing');
+  else if(w<assigned)warning=t('b15PreviewWeightTooMany');
+ }else{
+  before=[b15Number(rackEntry?.quantity??0),b15Number(rackEntry?.packages??0),b15Number(rackEntry?.weight_lb??0)+' lb'].join(' / ');
+  after=[b15Number(q),b15Number(p),b15Number(w)+' lb'].join(' / ');
+  const others=b15Balances.racks.filter(x=>match(x)&&x.location_id!==rack);
+  if(stock&&q+others.reduce((a,x)=>a+Number(x.quantity||0),0)>Number(stock.quantity))warning=t('b15PreviewTooMany');
+  if(!weightBalance&&w>0)warning=t('b15PreviewRackWeightMissing');
+  else if(weightBalance&&w+others.reduce((a,x)=>a+Number(x.weight_lb||0),0)>Number(weightBalance.weight_lb))warning=t('b15PreviewWeightTooMany');
+ }
+ const same=kind==='total_tubes'?(stock&&q===Number(stock.quantity)):kind==='total_weight'?(weightBalance&&w===Number(weightBalance.weight_lb)):(q===Number(rackEntry?.quantity??0)&&p===Number(rackEntry?.packages??0)&&w===Number(rackEntry?.weight_lb??0));
+ out.textContent=t('b15PreviewBefore')+': '+before+' '+t('b15PreviewTo')+' '+t('b15PreviewAfter')+': '+after+(warning?' | '+warning:same?' | '+t('b15PreviewSame'):' | '+t('b15PreviewAwaiting'));
+}
+function b15Current(){
+ const product=$('b15Product').value,rack=$('b15Rack').value,kind=$('b15Kind').value;
+ const match=x=>x.product_id===product&&x.department_id===b15Warehouse()?.id;
+ const s=b15Balances.stock.find(match),w=b15Balances.weights.find(match);
+ const r=b15Balances.racks.find(x=>match(x)&&x.location_id===rack);
+ const assignedQty=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.quantity||0),0);
+ const assignedLb=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.weight_lb||0),0);
+ let msg='';
+ const tubesLabel=lang==='es'?'tubos':'tubes', packagesLabel=lang==='es'?'paquetes':'packages';
+ const assignedLabel=lang==='es'?'asignados':'assigned';
+ if(kind==='total_tubes')msg=`${t('b15Current')}: ${b15Number(s?.quantity)} ${tubesLabel}; ${assignedLabel}: ${b15Number(assignedQty)}`;
+ else if(kind==='total_weight')msg=`${t('b15Current')}: ${b15Number(w?.weight_lb)} lb; ${assignedLabel}: ${b15Number(assignedLb)} lb`;
+ else msg=`${t('b15Current')}: ${b15Number(r?.quantity??0)} ${tubesLabel}, ${b15Number(r?.packages??0)} ${packagesLabel}, ${b15Number(r?.weight_lb??0)} lb. Total Warehouse: ${b15Number(s?.quantity)} ${tubesLabel}, ${b15Number(w?.weight_lb)} lb`;
+ if(!w && product){
+  if(kind==='total_weight')msg+=' — '+t('b15WeightUnregistered');
+  if(kind==='rack_assignment')msg+=' — '+t('b15PendingRack');
+ }
+ $('b15Current').textContent=msg;
+ b15Preview();
+}
+async function b15Load(){
+ if(currentRole!=='admin'||!client)return;
+ const wh=b15Warehouse();if(!wh)return;
+ try{
+  const specs=[['stock','product_id,department_id,quantity'],['inventory_weight_balances','product_id,department_id,weight_lb'],['stock_locations','product_id,department_id,location_id,quantity,packages,weight_lb'],['inventory_correction_audit','id,changed_at,product_id,correction_type,previous_values,new_values,reason']];
+  const all=await Promise.all(specs.map(async([name,columns])=>{
+   let q=client.from(name).select(columns);if(name==='inventory_correction_audit')q=q.order('changed_at',{ascending:false}).limit(100);else q=q.eq('department_id',wh.id);
+   const {data,error}=await q;if(error)throw error;return data||[];
+  }));
+  ['stock','weights','racks','audit'].forEach((key,i)=>b15Balances[key]=all[i]);
+  const body=$('b15Audit');body.replaceChildren();
+  const correctionsLabel={es:{total_tubes:'Total tubos',total_weight:'Peso Warehouse',rack_assignment:'Rack / Bin'},en:{total_tubes:'Tube total',total_weight:'Warehouse weight',rack_assignment:'Rack / Bin'}};
+  const formatAuditValues=(obj,kind)=>{
+   if(!obj||typeof obj!=='object')return '—';
+   if(kind==='total_tubes')return b15Number(obj.quantity)+(lang==='es'?' tubos':' tubes');
+   if(kind==='total_weight')return b15Number(obj.weight_lb)+' lb';
+   if(kind==='rack_assignment')return [b15Number(obj.quantity)+(lang==='es'?' tubos':' tubes'),b15Number(obj.packages)+(lang==='es'?' paquetes':' packages'),b15Number(obj.weight_lb)+' lb'].join(' · ');
+   return Object.entries(obj).map(([key,value])=>key+': '+b15Number(value)).join(' · ');
+  };
+  for(const a of b15Balances.audit){
+   const row=document.createElement('tr');
+   row.append(td(new Date(a.changed_at).toLocaleString(lang==='es'?'es-US':'en-US')),
+    td(cache.products.find(p=>p.id===a.product_id)?.sku||a.product_id),
+    td(correctionsLabel[lang]?.[a.correction_type]||a.correction_type),td(a.reason),
+    td(formatAuditValues(a.previous_values,a.correction_type)+' → '+formatAuditValues(a.new_values,a.correction_type)));
+   body.append(row);
+  }
+  if(!b15Balances.audit.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent=t('empty');row.append(cell);body.append(row);}
+  b15Current();showMessage('b15Message','');
+ }catch(err){showMessage('b15Message',t('b15ReadError')+(err.message||String(err)));}
+}
+for(const id of ['b15Qty','b15Packages','b15Weight'])$(id).addEventListener('input',b15Preview);
+$('b15Kind').onchange=b15Mode;$('b15Product').onchange=b15Current;$('b15Rack').onchange=b15Current;
+// Refresh controls clear unsaved inputs only, keeping the selected type, SKU and rack.
+function b15ClearPending(){
+ for(const id of ['b15Qty','b15Packages','b15Weight','b15Reason','b15Reference'])$(id).value='';
+ showMessage('b15Message','');b15Preview();
+}
+$('b15Reload').onclick=async()=>{b15ClearPending();await b15Load();};
+$('refresh').addEventListener('click',()=>{if(currentRole==='admin')b15ClearPending();});
+$('b15Cancel').onclick=()=>{$('b15Form').reset();b15Options();b15Mode();b15Preview();showMessage('b15Message',t('cancelled'),true)};
+$('b15Form').onsubmit=async e=>{
+ e.preventDefault();if(currentRole!=='admin'||!client)return;
+ const kind=$('b15Kind').value,product=$('b15Product').value,reason=$('b15Reason').value.trim();
+ const qty=kind==='total_weight'?null:numberFromInput($('b15Qty').value),packages=kind==='rack_assignment'?numberFromInput($('b15Packages').value):null;
+ const weight=kind==='total_tubes'?null:numberFromInput($('b15Weight').value);
+ const validInteger=n=>Number.isSafeInteger(n)&&n>=0;
+ if(!product||(kind==='rack_assignment'&&!$('b15Rack').value)){showMessage('b15Message',t('b15Missing'));return;}
+ if(reason.length<5||reason.length>500||(qty!==null&&!validInteger(qty))||(packages!==null&&!validInteger(packages))||(weight!==null&&(!Number.isFinite(weight)||weight<0))||
+  (kind!=='total_weight'&&$('b15Qty').value.trim()==='')||(kind!=='total_tubes'&&$('b15Weight').value.trim()==='')||(kind==='rack_assignment'&&$('b15Packages').value.trim()==='')){
+  showMessage('b15Message',t('b15Invalid'));return;
+ }
+ // BLOCK 15 PATCH 04: reject unchanged values before requesting confirmation or sending an RPC.
+ // The form sets absolute target balances, not amounts to add.
+ const warehouse=b15Warehouse();
+ const byProductAndWarehouse=x=>x.product_id===product&&x.department_id===warehouse?.id;
+ let unchanged=false;
+ if(kind==='total_tubes'){
+  const existing=b15Balances.stock.find(byProductAndWarehouse);
+  unchanged=existing!==undefined&&qty===Number(existing.quantity);
+ }else if(kind==='total_weight'){
+  const existing=b15Balances.weights.find(byProductAndWarehouse);
+  unchanged=existing!==undefined&&weight===Number(existing.weight_lb);
+ }else if(kind==='rack_assignment'){
+  const existing=b15Balances.racks.find(x=>byProductAndWarehouse(x)&&x.location_id===$('b15Rack').value);
+  unchanged=qty===Number(existing?.quantity??0)
+   &&packages===Number(existing?.packages??0)
+   &&weight===Number(existing?.weight_lb??0);
+ }
+ if(unchanged){
+  showMessage('b15Message',lang==='es'?'No hay cambios para guardar.':'No changes to save');
+  return;
+ }
+ if(!window.confirm(t('b15Confirm')+'\n'+(cache.products.find(p=>p.id===product)?.sku||product)+'\n'+kind+'\n'+reason))return;
+ const btn=$('b15Save');btn.disabled=true;
+ try{
+  const {data,error}=await client.rpc('admin_correct_warehouse_inventory',{
+   p_product_id:product,p_kind:kind,p_quantity:qty,p_packages:packages,p_weight_lb:weight,
+   p_location_id:kind==='rack_assignment'?$('b15Rack').value:null,p_reason:reason,p_reference:$('b15Reference').value.trim()||null
+  });
+  if(error)throw error;
+  await load();await b15Load();$('b15Reason').value='';$('b15Reference').value='';showMessage('b15Message',t('b15Success')+data,true);
+ }catch(err){const m=err.message||String(err);showMessage('b15Message',/PGRST202|could not find the function|admin_correct_warehouse_inventory/i.test(m)?t('b15Unavailable'):m)}
+ finally{btn.disabled=false;}
+};
+const b15PreviousRender=render;
+render=function(){b15PreviousRender();$('correctionsNav').classList.toggle('hidden',currentRole!=='admin');b15Options();};
+const b15PreviousSync=sync;
+sync=async function(){await b15PreviousSync();$('correctionsNav').classList.toggle('hidden',currentRole!=='admin');};
+$('correctionsNav').addEventListener('click',b15Load);
+// PATCH 06: Audit rows are constructed dynamically; re-render them whenever the language changes.
+// Static headings are translated by translate(), but these table cells also need refreshing.
+$('lang').addEventListener('change',()=>{
+ if(currentRole==='admin' && client){void b15Load();}
+});
+// Block 15 features do not automatically change inventory when the page loads.
+
+
+// BLOCK 15: controlled reversal UI. All changes go through admin-only Supabase RPCs.
+Object.assign(tr.es,{
+ b15RevTitle:'Reversiones y cancelaciones controladas — Admin',
+ b15RevNote:'Estas operaciones modifican el inventario real, requieren justificación y quedan auditadas. No redistribuyen racks automáticamente.',
+ b15RevKindLabel:'Operación',b15RevMovement:'Revertir movimiento sin rack',
+ b15RevReceiving:'Cancelar recepción contabilizada',b15RevTargetLabel:'Registro original',
+ b15RevReasonLabel:'Motivo obligatorio (5–500 caracteres)',b15RevApply:'Confirmar operación',
+ b15RevNone:'No hay registros compatibles disponibles.',b15RevReady:'Revisa cuidadosamente el registro original antes de confirmar.',
+ b15RevWarning:'ATENCIÓN: se modificará el inventario real. La operación no se puede deshacer desde este formulario.',
+ b15RevSaved:'Operación registrada y auditada: ',b15RevLoadError:'Error al consultar registros: ',
+ b15RevTry:'Selecciona un registro e introduce un motivo de al menos 5 caracteres.',
+ b15RevConfirm:'¿Confirmas la reversión del registro seleccionado? Se actualizará el inventario real.'
+});
+Object.assign(tr.en,{
+ b15RevTitle:'Controlled reversals and cancellations — Admin',
+ b15RevNote:'These operations change real inventory, require a reason and are audited. Racks are never redistributed automatically.',
+ b15RevKindLabel:'Action',b15RevMovement:'Reverse a non-rack movement',
+ b15RevReceiving:'Cancel a posted receiving',b15RevTargetLabel:'Original record',
+ b15RevReasonLabel:'Required reason (5–500 characters)',b15RevApply:'Confirm operation',
+ b15RevNone:'No eligible records available.',b15RevReady:'Review the original record carefully before confirming.',
+ b15RevWarning:'WARNING: real inventory will change. This operation cannot be undone using this form.',
+ b15RevSaved:'Operation saved and audited: ',b15RevLoadError:'Unable to load records: ',
+ b15RevTry:'Select a record and enter a reason of at least 5 characters.',
+ b15RevConfirm:'Confirm reversing the selected record? Real inventory will change.'
+});
+let b15RevReceivings=[],b15RevAlready=new Set(),b15RevCancelled=new Set(),b15RevLoaded=false;
+function b15RevDescription(m){
+ const p=cache.products.find(p=>p.id===m.product_id);
+ const from=cache.departments.find(d=>d.id===m.from_department_id);
+ const to=cache.departments.find(d=>d.id===m.to_department_id);
+ return (p?.sku||m.product_id)+' | '+m.movement_type+' | '+Number(m.quantity).toLocaleString()
+   +' | '+(from?.name||'—')+' → '+(to?.name||'—')+' | '+new Date(m.created_at).toLocaleString();
+}
+function b15RevOptions(){
+ const sel=$('b15RevTarget'),old=sel.value;
+ sel.replaceChildren();
+ const kind=$('b15RevKind').value;
+ const items=kind==='receiving'
+  ? b15RevReceivings.filter(r=>r.status==='posted'&&!b15RevCancelled.has(r.id)).map(r=>({id:r.id,text:r.bol_number+' | '+(r.supplier_name||'')+' | '+(r.received_date||'')}))
+  : (cache.movements||[]).filter(m=>!m.receiving_id&&!m.receiving_item_id&&!m.receiving_allocation_id
+   &&!m.from_location_id&&!m.to_location_id&&m.packages==null&&m.weight_lb==null
+   &&!b15RevAlready.has(m.id)).map(m=>({id:m.id,text:b15RevDescription(m)}));
+ const opt=document.createElement('option');opt.value='';opt.textContent=t('choose');sel.append(opt);
+ for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=item.text;sel.append(o)}
+ if(items.some(i=>i.id===old))sel.value=old;
+ $('b15RevDetails').textContent=items.length?t('b15RevReady'):t('b15RevNone');
+ b15RevPreview();
+}
+function b15RevPreview(){
+ const sel=$('b15RevTarget'),label=sel.options[sel.selectedIndex]?.textContent||'';
+ $('b15RevPreview').textContent=sel.value?t('b15RevWarning')+' '+label:t('b15RevNone');
+ $('b15RevApply').disabled=!sel.value||currentRole!=='admin';
+}
+async function b15RevLoad(){
+ if(!client||currentRole!=='admin')return;
+ const button=$('b15RevReload');button.disabled=true;
+ try{
+  const [r,a,c]=await Promise.all([
+   client.from('receivings').select('id,bol_number,supplier_name,received_date,status').eq('status','posted').order('received_date',{ascending:false}).limit(150),
+   client.from('inventory_movement_reversals').select('original_movement_id,reversal_movement_id').limit(1000),
+   client.from('inventory_receiving_cancellations').select('receiving_id').limit(1000)
+  ]);
+  for(const z of [r,a,c])if(z.error)throw z.error;
+  b15RevReceivings=r.data||[];
+  b15RevAlready=new Set((a.data||[]).flatMap(z=>[z.original_movement_id,z.reversal_movement_id]));
+  b15RevCancelled=new Set((c.data||[]).map(z=>z.receiving_id));
+  b15RevLoaded=true;b15RevOptions();showMessage('b15RevMessage','');
+ }catch(err){b15RevLoaded=false;showMessage('b15RevMessage',t('b15RevLoadError')+(err.message||err))}
+ finally{button.disabled=false}
+}
+$('b15RevReload').onclick=b15RevLoad;
+$('b15RevKind').onchange=b15RevOptions;
+$('b15RevTarget').onchange=b15RevPreview;
+$('b15RevApply').onclick=async()=>{
+ const id=$('b15RevTarget').value,reason=$('b15RevReason').value.trim();
+ if(!id||reason.length<5||reason.length>500){showMessage('b15RevMessage',t('b15RevTry'));return}
+ const target=$('b15RevTarget').options[$('b15RevTarget').selectedIndex]?.textContent||id;
+ if(!window.confirm(t('b15RevConfirm')+'\n'+target+'\n'+reason))return;
+ const button=$('b15RevApply');button.disabled=true;
+ try{
+  const k=$('b15RevKind').value;
+  const args=k==='receiving'?{p_receiving_id:id,p_reason:reason}:{p_movement_id:id,p_reason:reason};
+  const {data,error}=await client.rpc(k==='receiving'?'admin_cancel_posted_receiving':'admin_reverse_inventory_movement',args);
+  if(error)throw error;
+  $('b15RevReason').value='';
+  await load();await b15Load();await b15RevLoad();
+  showMessage('b15RevMessage',t('b15RevSaved')+data,true);
+ }catch(err){showMessage('b15RevMessage',err.message||String(err));b15RevPreview()}
+ finally{button.disabled=false;b15RevPreview()}
+};
+$('correctionsNav').addEventListener('click',b15RevLoad);
+$('lang').addEventListener('change',()=>{if(b15RevLoaded)b15RevOptions()});
+
+translate();
+</script></body></html>
+v class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
 <div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
 <div id="measureCatalog" class="panel hidden" style="background:#f8fafc">
 <h3 data-i="measureTitle">Administrar medidas OD y Wall</h3>
