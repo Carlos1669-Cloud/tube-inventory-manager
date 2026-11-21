@@ -77,6 +77,23 @@
 </form><p class="alert hidden" id="b15Message" role="status"></p>
 <h3 data-i="b15History">Historial de correcciones</h3><button type="button" class="secondary" id="b15Reload" data-i="refresh">Actualizar datos</button>
 <div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="reason">Motivo</th><th data-i="b15Change">Antes → Después</th></tr></thead><tbody id="b15Audit"></tbody></table></div>
+
+<hr style="margin:26px 0;border:0;border-top:1px solid #d6e1eb">
+<section id="b15ReversalPanel" aria-label="Controlled reversals">
+<h3 data-i="b15RevTitle">Reversiones y cancelaciones controladas — Admin</h3>
+<p class="alert" data-i="b15RevNote">Estas operaciones modifican el inventario real, requieren justificación y quedan auditadas. Nunca redistribuyen racks automáticamente.</p>
+<button type="button" class="secondary" id="b15RevReload" data-i="refresh">Actualizar datos</button>
+<label for="b15RevKind" data-i="b15RevKindLabel">Operación</label>
+<select id="b15RevKind"><option value="movement" data-i="b15RevMovement">Revertir movimiento sin rack</option><option value="receiving" data-i="b15RevReceiving">Cancelar recepción contabilizada</option></select>
+<label for="b15RevTarget" data-i="b15RevTargetLabel">Registro original</label>
+<select id="b15RevTarget"></select>
+<p id="b15RevDetails" class="muted" role="status"></p>
+<label for="b15RevReason" data-i="b15RevReasonLabel">Motivo obligatorio (5–500 caracteres)</label>
+<input id="b15RevReason" maxlength="500" autocomplete="off">
+<p id="b15RevPreview" class="alert" role="status"></p>
+<button type="button" id="b15RevApply" data-i="b15RevApply">Confirmar operación</button>
+<p id="b15RevMessage" class="alert hidden" role="status"></p>
+</section>
 </div><div id="departmentsView" class="panel view hidden"><h2 data-i="manageDepartments">Administrar departamentos</h2><p class="muted" data-i="deptNote">Solo los administradores pueden añadir departamentos. Los departamentos existentes se muestran a continuación.</p><form id="departmentForm"><label for="departmentName" data-i="newDepartment">Nombre del nuevo departamento</label><input id="departmentName" type="text" maxlength="100" autocomplete="off" required><button type="submit" id="departmentSubmit" data-i="addDepartment">Añadir departamento</button><button type="button" id="deptClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="deptCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="departmentMessage" role="status" class="alert hidden"></p><p class="muted" data-i="admin14Help">Editar, desactivar o recuperar registros. No se borran datos del historial.</p><h3 data-i="departmentList">Departamentos registrados</h3><div class="scroll"><table><thead><tr><th data-i="department">Departamento</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="departmentsBody"></tbody></table></div></div><div id="locationsView" class="panel view hidden"><h2 data-i="manageLocations">Ubicaciones del almacén</h2><p class="muted" data-i="locationNote">Registra racks, bins o áreas manualmente.</p><form id="locationForm"><label for="locationName" data-i="locationName">Nombre de ubicación</label><input id="locationName" maxlength="100" required placeholder="Rack 2, Bin A-1, Area Receiving"><label for="locationType" data-i="locationType">Tipo de ubicación</label><select id="locationType"><option value="Rack">Rack</option><option value="Bin">Bin</option><option value="Location">Location / Área</option></select><button id="locationSubmit" type="submit" data-i="addLocation">Añadir ubicación</button><button type="button" id="locationClear" class="secondary" data-i="clear">Limpiar</button><button type="button" id="locationCancel" class="secondary" data-i="cancel">Cancelar</button></form><p id="locationMessage" class="alert hidden" role="status"></p><h3 data-i="locationList">Ubicaciones registradas</h3><div class="scroll"><table><thead><tr><th data-i="locationName">Ubicación</th><th data-i="locationType">Tipo</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="locationsBody"></tbody></table></div></div></section>
 </main><footer>Tube Inventory Manager · Built By Carlos Miranda</footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script><script>
 'use strict';
@@ -886,6 +903,100 @@ $('lang').addEventListener('change',()=>{
  if(currentRole==='admin' && client){void b15Load();}
 });
 // Block 15 features do not automatically change inventory when the page loads.
+
+
+// BLOCK 15: controlled reversal UI. All changes go through admin-only Supabase RPCs.
+Object.assign(tr.es,{
+ b15RevTitle:'Reversiones y cancelaciones controladas — Admin',
+ b15RevNote:'Estas operaciones modifican el inventario real, requieren justificación y quedan auditadas. No redistribuyen racks automáticamente.',
+ b15RevKindLabel:'Operación',b15RevMovement:'Revertir movimiento sin rack',
+ b15RevReceiving:'Cancelar recepción contabilizada',b15RevTargetLabel:'Registro original',
+ b15RevReasonLabel:'Motivo obligatorio (5–500 caracteres)',b15RevApply:'Confirmar operación',
+ b15RevNone:'No hay registros compatibles disponibles.',b15RevReady:'Revisa cuidadosamente el registro original antes de confirmar.',
+ b15RevWarning:'ATENCIÓN: se modificará el inventario real. La operación no se puede deshacer desde este formulario.',
+ b15RevSaved:'Operación registrada y auditada: ',b15RevLoadError:'Error al consultar registros: ',
+ b15RevTry:'Selecciona un registro e introduce un motivo de al menos 5 caracteres.',
+ b15RevConfirm:'¿Confirmas la reversión del registro seleccionado? Se actualizará el inventario real.'
+});
+Object.assign(tr.en,{
+ b15RevTitle:'Controlled reversals and cancellations — Admin',
+ b15RevNote:'These operations change real inventory, require a reason and are audited. Racks are never redistributed automatically.',
+ b15RevKindLabel:'Action',b15RevMovement:'Reverse a non-rack movement',
+ b15RevReceiving:'Cancel a posted receiving',b15RevTargetLabel:'Original record',
+ b15RevReasonLabel:'Required reason (5–500 characters)',b15RevApply:'Confirm operation',
+ b15RevNone:'No eligible records available.',b15RevReady:'Review the original record carefully before confirming.',
+ b15RevWarning:'WARNING: real inventory will change. This operation cannot be undone using this form.',
+ b15RevSaved:'Operation saved and audited: ',b15RevLoadError:'Unable to load records: ',
+ b15RevTry:'Select a record and enter a reason of at least 5 characters.',
+ b15RevConfirm:'Confirm reversing the selected record? Real inventory will change.'
+});
+let b15RevReceivings=[],b15RevAlready=new Set(),b15RevCancelled=new Set(),b15RevLoaded=false;
+function b15RevDescription(m){
+ const p=cache.products.find(p=>p.id===m.product_id);
+ const from=cache.departments.find(d=>d.id===m.from_department_id);
+ const to=cache.departments.find(d=>d.id===m.to_department_id);
+ return (p?.sku||m.product_id)+' | '+m.movement_type+' | '+Number(m.quantity).toLocaleString()
+   +' | '+(from?.name||'—')+' → '+(to?.name||'—')+' | '+new Date(m.created_at).toLocaleString();
+}
+function b15RevOptions(){
+ const sel=$('b15RevTarget'),old=sel.value;
+ sel.replaceChildren();
+ const kind=$('b15RevKind').value;
+ const items=kind==='receiving'
+  ? b15RevReceivings.filter(r=>r.status==='posted'&&!b15RevCancelled.has(r.id)).map(r=>({id:r.id,text:r.bol_number+' | '+(r.supplier_name||'')+' | '+(r.received_date||'')}))
+  : (cache.movements||[]).filter(m=>!m.receiving_id&&!m.receiving_item_id&&!m.receiving_allocation_id
+   &&!m.from_location_id&&!m.to_location_id&&m.packages==null&&m.weight_lb==null
+   &&!b15RevAlready.has(m.id)).map(m=>({id:m.id,text:b15RevDescription(m)}));
+ const opt=document.createElement('option');opt.value='';opt.textContent=t('choose');sel.append(opt);
+ for(const item of items){const o=document.createElement('option');o.value=item.id;o.textContent=item.text;sel.append(o)}
+ if(items.some(i=>i.id===old))sel.value=old;
+ $('b15RevDetails').textContent=items.length?t('b15RevReady'):t('b15RevNone');
+ b15RevPreview();
+}
+function b15RevPreview(){
+ const sel=$('b15RevTarget'),label=sel.options[sel.selectedIndex]?.textContent||'';
+ $('b15RevPreview').textContent=sel.value?t('b15RevWarning')+' '+label:t('b15RevNone');
+ $('b15RevApply').disabled=!sel.value||currentRole!=='admin';
+}
+async function b15RevLoad(){
+ if(!client||currentRole!=='admin')return;
+ const button=$('b15RevReload');button.disabled=true;
+ try{
+  const [r,a,c]=await Promise.all([
+   client.from('receivings').select('id,bol_number,supplier_name,received_date,status').eq('status','posted').order('received_date',{ascending:false}).limit(150),
+   client.from('inventory_movement_reversals').select('original_movement_id,reversal_movement_id').limit(1000),
+   client.from('inventory_receiving_cancellations').select('receiving_id').limit(1000)
+  ]);
+  for(const z of [r,a,c])if(z.error)throw z.error;
+  b15RevReceivings=r.data||[];
+  b15RevAlready=new Set((a.data||[]).flatMap(z=>[z.original_movement_id,z.reversal_movement_id]));
+  b15RevCancelled=new Set((c.data||[]).map(z=>z.receiving_id));
+  b15RevLoaded=true;b15RevOptions();showMessage('b15RevMessage','');
+ }catch(err){b15RevLoaded=false;showMessage('b15RevMessage',t('b15RevLoadError')+(err.message||err))}
+ finally{button.disabled=false}
+}
+$('b15RevReload').onclick=b15RevLoad;
+$('b15RevKind').onchange=b15RevOptions;
+$('b15RevTarget').onchange=b15RevPreview;
+$('b15RevApply').onclick=async()=>{
+ const id=$('b15RevTarget').value,reason=$('b15RevReason').value.trim();
+ if(!id||reason.length<5||reason.length>500){showMessage('b15RevMessage',t('b15RevTry'));return}
+ const target=$('b15RevTarget').options[$('b15RevTarget').selectedIndex]?.textContent||id;
+ if(!window.confirm(t('b15RevConfirm')+'\n'+target+'\n'+reason))return;
+ const button=$('b15RevApply');button.disabled=true;
+ try{
+  const k=$('b15RevKind').value;
+  const args=k==='receiving'?{p_receiving_id:id,p_reason:reason}:{p_movement_id:id,p_reason:reason};
+  const {data,error}=await client.rpc(k==='receiving'?'admin_cancel_posted_receiving':'admin_reverse_inventory_movement',args);
+  if(error)throw error;
+  $('b15RevReason').value='';
+  await load();await b15Load();await b15RevLoad();
+  showMessage('b15RevMessage',t('b15RevSaved')+data,true);
+ }catch(err){showMessage('b15RevMessage',err.message||String(err));b15RevPreview()}
+ finally{button.disabled=false;b15RevPreview()}
+};
+$('correctionsNav').addEventListener('click',b15RevLoad);
+$('lang').addEventListener('change',()=>{if(b15RevLoaded)b15RevOptions()});
 
 translate();
 </script></body></html>
