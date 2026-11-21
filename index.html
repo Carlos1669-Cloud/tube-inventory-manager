@@ -777,6 +777,27 @@ $('b15Form').onsubmit=async e=>{
   (kind!=='total_weight'&&$('b15Qty').value.trim()==='')||(kind!=='total_tubes'&&$('b15Weight').value.trim()==='')||(kind==='rack_assignment'&&$('b15Packages').value.trim()==='')){
   showMessage('b15Message',t('b15Invalid'));return;
  }
+ // BLOCK 15 PATCH 04: reject unchanged values before requesting confirmation or sending an RPC.
+ // The form sets absolute target balances, not amounts to add.
+ const warehouse=b15Warehouse();
+ const byProductAndWarehouse=x=>x.product_id===product&&x.department_id===warehouse?.id;
+ let unchanged=false;
+ if(kind==='total_tubes'){
+  const existing=b15Balances.stock.find(byProductAndWarehouse);
+  unchanged=existing!==undefined&&qty===Number(existing.quantity);
+ }else if(kind==='total_weight'){
+  const existing=b15Balances.weights.find(byProductAndWarehouse);
+  unchanged=existing!==undefined&&weight===Number(existing.weight_lb);
+ }else if(kind==='rack_assignment'){
+  const existing=b15Balances.racks.find(x=>byProductAndWarehouse(x)&&x.location_id===$('b15Rack').value);
+  unchanged=qty===Number(existing?.quantity??0)
+   &&packages===Number(existing?.packages??0)
+   &&weight===Number(existing?.weight_lb??0);
+ }
+ if(unchanged){
+  showMessage('b15Message',lang==='es'?'No hay cambios para guardar.':'No changes to save');
+  return;
+ }
  if(!window.confirm(t('b15Confirm')+'\n'+(cache.products.find(p=>p.id===product)?.sku||product)+'\n'+kind+'\n'+reason))return;
  const btn=$('b15Save');btn.disabled=true;
  try{
