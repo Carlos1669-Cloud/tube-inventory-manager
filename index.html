@@ -72,6 +72,7 @@
 <div id="b15WeightRow" class="hidden"><label for="b15Weight" data-i="b15Weight">Libras (lb)</label><input id="b15Weight" type="text" inputmode="decimal" data-number-format="decimal"></div>
 <label for="b15Reason" data-i="b15Reason">Motivo de corrección (obligatorio)</label><input id="b15Reason" maxlength="500" required>
 <label for="b15Reference" data-i="b15Reference">Referencia (opcional)</label><input id="b15Reference" maxlength="120">
+<p id="b15Preview" class="alert" role="status" aria-live="polite"></p>
 <button type="submit" id="b15Save" data-i="b15Save">Confirmar corrección</button><button type="button" class="secondary" id="b15Cancel" data-i="cancel">Cancelar</button>
 </form><p class="alert hidden" id="b15Message" role="status"></p>
 <h3 data-i="b15History">Historial de correcciones</h3><button type="button" class="secondary" id="b15Reload" data-i="refresh">Actualizar datos</button>
@@ -709,6 +710,8 @@ recvSyncPost();
 // === BLOCK 15: ADMIN WAREHOUSE CORRECTIONS (no hard deletion) ===
 Object.assign(tr.es,{b15Title:'Correcciones — Administrador',b15Help:'Warehouse total y distribución entre Racks son independientes. Asignar a Rack NO suma al total. Guarda cada corrección con motivo; los movimientos anteriores permanecen intactos.',b15KindLabel:'Tipo de corrección',b15TotalTubes:'Total de tubos Warehouse',b15TotalWeight:'Total de libras Warehouse',b15RackAssignment:'Asignación manual a Rack / Bin',b15RackLabel:'Rack / Bin',b15Qty:'Tubos',b15Packages:'Paquetes',b15Weight:'Libras (lb)',b15Reason:'Motivo de corrección (mínimo 5 caracteres)',b15Reference:'Referencia (opcional)',b15Save:'Confirmar corrección',b15History:'Historial de correcciones',b15Change:'Antes → Después',b15Missing:'Selecciona producto y los valores requeridos.',b15Invalid:'Valor inválido. Verifica tubos, paquetes, libras y motivo (mínimo 5 caracteres).',b15Confirm:'Esta operación CAMBIA inventario real y guarda auditoría. ¿Confirmas?',b15Success:'Corrección registrada. ID: ',b15ReadError:'No se pudieron leer los balances: ',b15Current:'Valores actuales',b15NoExisting:'No existe un balance actual para este producto.',b15Unavailable:'Bloque 15: instala primero su SQL en Supabase.',b15NotYet:'No incluye reversión de recepciones contabilizadas ni movimientos históricos.'});
 Object.assign(tr.en,{b15Title:'Corrections — Administrator',b15Help:'Warehouse totals and Rack allocations are separate. Rack assignment does NOT add to the total. Every correction requires a reason; original movements remain intact.',b15KindLabel:'Correction type',b15TotalTubes:'Warehouse tube total',b15TotalWeight:'Warehouse weight total',b15RackAssignment:'Manual Rack / Bin assignment',b15RackLabel:'Rack / Bin',b15Qty:'Tubes',b15Packages:'Packages',b15Weight:'Pounds (lb)',b15Reason:'Correction reason (minimum 5 characters)',b15Reference:'Reference (optional)',b15Save:'Confirm correction',b15History:'Correction history',b15Change:'Before → After',b15Missing:'Select a product and enter all required values.',b15Invalid:'Invalid value. Check tubes, packages, weight, and reason (minimum 5 characters).',b15Confirm:'This WILL CHANGE live inventory and record an audit. Confirm?',b15Success:'Correction recorded. ID: ',b15ReadError:'Unable to load balances: ',b15Current:'Current values',b15NoExisting:'No balance exists for this product.',b15Unavailable:'Install Block 15 SQL in Supabase first.',b15NotYet:'Reversal of posted receipts and historical movements is not available yet.'});
+Object.assign(tr.es,{b15PreviewMissing:'Selecciona producto y ubicación (si corresponde).',b15PreviewUnset:'Escribe los nuevos valores para ver el cambio antes de guardar.',b15PreviewNotRecorded:'No registrado',b15PreviewTo:'→',b15PreviewSame:'Sin cambios: no se guardará una corrección.',b15PreviewTooMany:'La cantidad en racks excedería el total de Warehouse.',b15PreviewWeightTooMany:'Las libras asignadas excederían el total registrado en Warehouse.',b15PreviewWeightMissing:'No existe un balance general de libras para este producto; no registres un peso inventado.',b15PreviewRackWeightMissing:'No se pueden asignar libras positivas sin un balance general de peso.',b15PreviewBefore:'Antes',b15PreviewAfter:'Después',b15PreviewOtherRack:'Otros racks',b15PreviewInvalid:'Revisa los valores: tubos/paquetes enteros y libras no negativas.',b15PreviewAwaiting:'Esta operación debe validarse en Supabase antes de considerarla guardada.'});
+Object.assign(tr.en,{b15PreviewMissing:'Select a product and rack (if applicable).',b15PreviewUnset:'Enter new values to preview the change before saving.',b15PreviewNotRecorded:'Not recorded',b15PreviewTo:'→',b15PreviewSame:'No changes: no correction will be saved.',b15PreviewTooMany:'Rack-assigned tubes would exceed the Warehouse total.',b15PreviewWeightTooMany:'Rack-assigned pounds would exceed the recorded Warehouse total.',b15PreviewWeightMissing:'No Warehouse weight balance exists for this product; do not enter an invented weight.',b15PreviewRackWeightMissing:'Cannot assign positive pounds without a Warehouse weight balance.',b15PreviewBefore:'Before',b15PreviewAfter:'After',b15PreviewOtherRack:'Other racks',b15PreviewInvalid:'Check values: whole-number tubes/packages and nonnegative pounds.',b15PreviewAwaiting:'Supabase must validate this operation before it is considered saved.'});
 // PATCH 05: Distinguish missing weight records from measured zero and show readable audit entries.
 Object.assign(tr.es,{b15WeightUnregistered:'Peso general no registrado; no introduzcas libras inventadas.',b15PendingRack:'Peso de rack pendiente de registrar'});
 Object.assign(tr.en,{b15WeightUnregistered:'No Warehouse weight balance recorded; do not invent a weight.',b15PendingRack:'Rack weight not yet recorded'});
@@ -732,6 +735,41 @@ function b15Number(value){
  const n=Number(value);
  return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:2}):String(value);
 }
+// Consolidated Block 15: browser-side preview is informative; server RPC enforces actual rules.
+function b15Preview(){
+ const out=$('b15Preview');if(!out)return;
+ const product=$('b15Product').value,kind=$('b15Kind').value,rack=$('b15Rack').value;
+ const wh=b15Warehouse();
+ if(!product||(kind==='rack_assignment'&&!rack)){out.textContent=t('b15PreviewMissing');return;}
+ const match=x=>x.product_id===product&&x.department_id===wh?.id;
+ const stock=b15Balances.stock.find(match),weightBalance=b15Balances.weights.find(match);
+ const rackEntry=b15Balances.racks.find(x=>match(x)&&x.location_id===rack);
+ const qtyInput=$('b15Qty').value.trim(),packInput=$('b15Packages').value.trim(),weightInput=$('b15Weight').value.trim();
+ const hasQty=kind!=='total_weight',hasWeight=kind!=='total_tubes',hasPack=kind==='rack_assignment';
+ if((hasQty&&!qtyInput)||(hasWeight&&!weightInput)||(hasPack&&!packInput)){out.textContent=t('b15PreviewUnset');return;}
+ const q=hasQty?numberFromInput(qtyInput):null,p=hasPack?numberFromInput(packInput):null,w=hasWeight?numberFromInput(weightInput):null;
+ if((hasQty&&(!Number.isSafeInteger(q)||q<0))||(hasPack&&(!Number.isSafeInteger(p)||p<0))||(hasWeight&&(!Number.isFinite(w)||w<0))){out.textContent=t('b15PreviewInvalid');return;}
+ const noValue=t('b15PreviewNotRecorded');let before,after,warning='';
+ if(kind==='total_tubes'){
+  before=stock?b15Number(stock.quantity):noValue;after=b15Number(q);
+  const assigned=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.quantity||0),0);
+  if(q<assigned)warning=t('b15PreviewTooMany');
+ }else if(kind==='total_weight'){
+  before=weightBalance?b15Number(weightBalance.weight_lb)+' lb':noValue;after=b15Number(w)+' lb';
+  const assigned=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.weight_lb||0),0);
+  if(!weightBalance)warning=t('b15PreviewWeightMissing');
+  else if(w<assigned)warning=t('b15PreviewWeightTooMany');
+ }else{
+  before=[b15Number(rackEntry?.quantity??0),b15Number(rackEntry?.packages??0),b15Number(rackEntry?.weight_lb??0)+' lb'].join(' / ');
+  after=[b15Number(q),b15Number(p),b15Number(w)+' lb'].join(' / ');
+  const others=b15Balances.racks.filter(x=>match(x)&&x.location_id!==rack);
+  if(stock&&q+others.reduce((a,x)=>a+Number(x.quantity||0),0)>Number(stock.quantity))warning=t('b15PreviewTooMany');
+  if(!weightBalance&&w>0)warning=t('b15PreviewRackWeightMissing');
+  else if(weightBalance&&w+others.reduce((a,x)=>a+Number(x.weight_lb||0),0)>Number(weightBalance.weight_lb))warning=t('b15PreviewWeightTooMany');
+ }
+ const same=kind==='total_tubes'?(stock&&q===Number(stock.quantity)):kind==='total_weight'?(weightBalance&&w===Number(weightBalance.weight_lb)):(q===Number(rackEntry?.quantity??0)&&p===Number(rackEntry?.packages??0)&&w===Number(rackEntry?.weight_lb??0));
+ out.textContent=t('b15PreviewBefore')+': '+before+' '+t('b15PreviewTo')+' '+t('b15PreviewAfter')+': '+after+(warning?' | '+warning:same?' | '+t('b15PreviewSame'):' | '+t('b15PreviewAwaiting'));
+}
 function b15Current(){
  const product=$('b15Product').value,rack=$('b15Rack').value,kind=$('b15Kind').value;
  const match=x=>x.product_id===product&&x.department_id===b15Warehouse()?.id;
@@ -750,6 +788,7 @@ function b15Current(){
   if(kind==='rack_assignment')msg+=' — '+t('b15PendingRack');
  }
  $('b15Current').textContent=msg;
+ b15Preview();
 }
 async function b15Load(){
  if(currentRole!=='admin'||!client)return;
@@ -778,18 +817,20 @@ async function b15Load(){
     td(formatAuditValues(a.previous_values,a.correction_type)+' → '+formatAuditValues(a.new_values,a.correction_type)));
    body.append(row);
   }
+  if(!b15Balances.audit.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent=t('empty');row.append(cell);body.append(row);}
   b15Current();showMessage('b15Message','');
  }catch(err){showMessage('b15Message',t('b15ReadError')+(err.message||String(err)));}
 }
+for(const id of ['b15Qty','b15Packages','b15Weight'])$(id).addEventListener('input',b15Preview);
 $('b15Kind').onchange=b15Mode;$('b15Product').onchange=b15Current;$('b15Rack').onchange=b15Current;
 // Refresh controls clear unsaved inputs only, keeping the selected type, SKU and rack.
 function b15ClearPending(){
  for(const id of ['b15Qty','b15Packages','b15Weight','b15Reason','b15Reference'])$(id).value='';
- showMessage('b15Message','');
+ showMessage('b15Message','');b15Preview();
 }
 $('b15Reload').onclick=async()=>{b15ClearPending();await b15Load();};
 $('refresh').addEventListener('click',()=>{if(currentRole==='admin')b15ClearPending();});
-$('b15Cancel').onclick=()=>{$('b15Form').reset();b15Options();b15Mode();showMessage('b15Message',t('cancelled'),true)};
+$('b15Cancel').onclick=()=>{$('b15Form').reset();b15Options();b15Mode();b15Preview();showMessage('b15Message',t('cancelled'),true)};
 $('b15Form').onsubmit=async e=>{
  e.preventDefault();if(currentRole!=='admin'||!client)return;
  const kind=$('b15Kind').value,product=$('b15Product').value,reason=$('b15Reason').value.trim();
