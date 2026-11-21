@@ -704,6 +704,11 @@ function b15Mode(){
  $('b15WeightRow').classList.toggle('hidden',kind==='total_tubes');
  b15Current();
 }
+function b15Number(value){
+ if(value===null||value===undefined||value==='')return '—';
+ const n=Number(value);
+ return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:2}):String(value);
+}
 function b15Current(){
  const product=$('b15Product').value,rack=$('b15Rack').value,kind=$('b15Kind').value;
  const match=x=>x.product_id===product&&x.department_id===b15Warehouse()?.id;
@@ -712,9 +717,9 @@ function b15Current(){
  const assignedQty=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.quantity||0),0);
  const assignedLb=b15Balances.racks.filter(match).reduce((a,x)=>a+Number(x.weight_lb||0),0);
  let msg='';
- if(kind==='total_tubes')msg=`${t('b15Current')}: ${s?.quantity??'—'} tubes; assigned: ${assignedQty}`;
- else if(kind==='total_weight')msg=`${t('b15Current')}: ${w?.weight_lb??'—'} lb; assigned: ${assignedLb} lb`;
- else msg=`${t('b15Current')}: ${r?.quantity??0} tubes, ${r?.packages??0} packages, ${r?.weight_lb??0} lb. Total Warehouse: ${s?.quantity??'—'} tubes, ${w?.weight_lb??'—'} lb`;
+ if(kind==='total_tubes')msg=`${t('b15Current')}: ${b15Number(s?.quantity)} tubes; assigned: ${b15Number(assignedQty)}`;
+ else if(kind==='total_weight')msg=`${t('b15Current')}: ${b15Number(w?.weight_lb)} lb; assigned: ${b15Number(assignedLb)} lb`;
+ else msg=`${t('b15Current')}: ${b15Number(r?.quantity??0)} tubes, ${b15Number(r?.packages??0)} packages, ${b15Number(r?.weight_lb??0)} lb. Total Warehouse: ${b15Number(s?.quantity)} tubes, ${b15Number(w?.weight_lb)} lb`;
  $('b15Current').textContent=msg;
 }
 async function b15Load(){
@@ -733,7 +738,13 @@ async function b15Load(){
  }catch(err){showMessage('b15Message',t('b15ReadError')+(err.message||String(err)));}
 }
 $('b15Kind').onchange=b15Mode;$('b15Product').onchange=b15Current;$('b15Rack').onchange=b15Current;
-$('b15Reload').onclick=b15Load;
+// Refresh controls clear unsaved inputs only, keeping the selected type, SKU and rack.
+function b15ClearPending(){
+ for(const id of ['b15Qty','b15Packages','b15Weight','b15Reason','b15Reference'])$(id).value='';
+ showMessage('b15Message','');
+}
+$('b15Reload').onclick=async()=>{b15ClearPending();await b15Load();};
+$('refresh').addEventListener('click',()=>{if(currentRole==='admin')b15ClearPending();});
 $('b15Cancel').onclick=()=>{$('b15Form').reset();b15Options();b15Mode();showMessage('b15Message',t('cancelled'),true)};
 $('b15Form').onsubmit=async e=>{
  e.preventDefault();if(currentRole!=='admin'||!client)return;
