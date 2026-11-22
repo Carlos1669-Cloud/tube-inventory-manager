@@ -16,7 +16,21 @@
  </form>
  <p id="recoveryMessage" class="alert hidden" role="status"></p>
 </section>
-<section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div><div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
+<section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" id="changePasswordOpen" class="secondary">Change Password</button><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div></div><section id="selfPasswordPanel" class="panel hidden" style="background:#f8fafc" aria-label="Change your password">
+ <h3 id="selfPasswordTitle">Change Password</h3>
+ <p id="selfPasswordHelp" class="muted">Change only the password for your signed-in account. Your role and inventory permissions will not change.</p>
+ <p id="selfPasswordAccount" class="muted"></p>
+ <form id="selfPasswordForm" autocomplete="off">
+  <label id="selfPasswordNewLabel" for="selfPasswordNew">New password (12 characters or more)</label>
+  <input id="selfPasswordNew" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+  <label id="selfPasswordConfirmLabel" for="selfPasswordConfirm">Confirm new password</label>
+  <input id="selfPasswordConfirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+  <button id="selfPasswordSave" type="submit">Save New Password</button>
+  <button id="selfPasswordCancel" type="button" class="secondary">Cancel</button>
+ </form>
+ <p id="selfPasswordMessage" class="alert hidden" role="status"></p>
+</section>
+<div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
 <div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><div class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
 <div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
 <div id="measureCatalog" class="panel hidden" style="background:#f8fafc">
@@ -1198,6 +1212,62 @@ $('lang').addEventListener('change',()=>{
  recoveryTranslate();
  if(recoveryActive&&recoveryVerified)$('recoveryAccount').textContent=$('recoveryAccount').textContent.split(' — ')[0]+' — '+recoveryT('wrong');
 });
+
+
+// SELF-SERVICE PASSWORD CHANGE — any signed-in member, same access role retained.
+// Uses the authenticated user's own Supabase session; no admin privileges and no DB updates.
+const selfPassWords={
+ en:{open:'Change Password',title:'Change Your Password',help:'Only your own sign-in password changes. Your role and inventory permissions stay the same.',newLabel:'New password (12 characters or more)',confirmLabel:'Confirm new password',save:'Save New Password',cancel:'Cancel',weak:'Enter a password with at least 12 characters.',mismatch:'The passwords do not match.',saving:'Saving your new password…',done:'Password changed. Sign in again with your new password.',notSigned:'Please sign in before changing your password.'},
+ es:{open:'Cambiar contraseña',title:'Cambiar tu contraseña',help:'Solo cambia tu propia contraseña de acceso. Tu rol y permisos de inventario permanecen iguales.',newLabel:'Contraseña nueva (mínimo 12 caracteres)',confirmLabel:'Confirmar contraseña nueva',save:'Guardar contraseña',cancel:'Cancelar',weak:'Utiliza una contraseña de al menos 12 caracteres.',mismatch:'Las contraseñas no coinciden.',saving:'Guardando la contraseña nueva…',done:'Contraseña cambiada. Inicia sesión nuevamente con tu contraseña nueva.',notSigned:'Inicia sesión antes de cambiar la contraseña.'}
+};
+let selfPasswordBusy=false;
+function selfPasswordTranslate(){
+ const words=selfPassWords[lang];
+ const bindings={changePasswordOpen:'open',selfPasswordTitle:'title',selfPasswordHelp:'help',selfPasswordNewLabel:'newLabel',selfPasswordConfirmLabel:'confirmLabel',selfPasswordSave:'save',selfPasswordCancel:'cancel'};
+ for(const [id,key] of Object.entries(bindings))$(id).textContent=words[key];
+}
+function selfPasswordClose(){
+ if(selfPasswordBusy)return;
+ $('selfPasswordNew').value='';$('selfPasswordConfirm').value='';
+ showMessage('selfPasswordMessage','');
+ $('selfPasswordPanel').classList.add('hidden');
+}
+$('changePasswordOpen').addEventListener('click',async()=>{
+ if(!client||recoveryActive)return;
+ const {data:{user},error}=await client.auth.getUser();
+ if(error||!user){showMessage('appMessage',selfPassWords[lang].notSigned);return;}
+ $('selfPasswordAccount').textContent=user.email||'';
+ $('selfPasswordNew').value='';$('selfPasswordConfirm').value='';
+ showMessage('selfPasswordMessage','');
+ $('selfPasswordPanel').classList.remove('hidden');
+ selfPasswordTranslate();
+ $('selfPasswordNew').focus();
+});
+$('selfPasswordCancel').addEventListener('click',selfPasswordClose);
+$('selfPasswordForm').addEventListener('submit',async(event)=>{
+ event.preventDefault();
+ if(!client||selfPasswordBusy||recoveryActive)return;
+ const w=selfPassWords[lang];
+ const pw=$('selfPasswordNew').value,confirmation=$('selfPasswordConfirm').value;
+ if(pw.length<12){showMessage('selfPasswordMessage',w.weak);return;}
+ if(pw!==confirmation){showMessage('selfPasswordMessage',w.mismatch);return;}
+ selfPasswordBusy=true;$('selfPasswordSave').disabled=true;$('selfPasswordCancel').disabled=true;
+ showMessage('selfPasswordMessage',w.saving);
+ try{
+  const {data:{user},error:authError}=await client.auth.getUser();
+  if(authError||!user)throw Error(w.notSigned);
+  const {error}=await client.auth.updateUser({password:pw});
+  if(error)throw error;
+  $('selfPasswordNew').value='';$('selfPasswordConfirm').value='';
+  const {error:signoutError}=await client.auth.signOut();
+  $('selfPasswordPanel').classList.add('hidden');
+  $('appPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');
+  showMessage('loginMessage',w.done+(signoutError?' '+signoutError.message:''),true);
+ }catch(error){showMessage('selfPasswordMessage',error.message||String(error));}
+ finally{selfPasswordBusy=false;$('selfPasswordSave').disabled=false;$('selfPasswordCancel').disabled=false;}
+});
+$('lang').addEventListener('change',selfPasswordTranslate);
+selfPasswordTranslate();
 
 translate();
 </script></body></html>
