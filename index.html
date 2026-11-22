@@ -2,6 +2,20 @@
 :root{font-family:system-ui,Arial,sans-serif;color:#1a2a38;background:#f1f5f9}*{box-sizing:border-box}body{margin:0}header{background:#173c5d;color:white;padding:20px}header .top{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:1.55rem;margin:0}header p{margin:6px 0 0}main{max-width:1100px;margin:24px auto;padding:0 16px}.panel{background:white;border:1px solid #d6e1eb;border-radius:14px;padding:20px;margin-bottom:16px}label{display:block;font-weight:650;margin:12px 0 6px}input,select{padding:11px;border:1px solid #b8c7d5;border-radius:8px;font:inherit;max-width:100%;width:100%}header select{width:auto;color:#17232d}button{background:#176b9c;color:white;border:0;border-radius:8px;padding:11px 16px;font:inherit;cursor:pointer;margin:8px 8px 0 0}button:disabled{opacity:.6;cursor:not-allowed}.secondary{background:#e8eff5;color:#173c5d}.muted{color:#5b6e7b}.hidden{display:none!important}.nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.nav button{margin:0}.nav button.active{background:#123b5d}table{border-collapse:collapse;width:100%;font-size:.94rem}th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8ee}th{background:#f1f6fa}.scroll{overflow:auto}.alert{background:#fff5e3;padding:12px;border-radius:8px;margin-top:12px;white-space:pre-wrap}.ok{background:#e6f5ea}.summary{display:flex;gap:12px;flex-wrap:wrap}.summary>div{background:#eff5fa;border-radius:10px;padding:14px;flex:1;min-width:160px}footer{text-align:center;padding:22px;color:#526779}small{font-size:.85rem}
 </style></head><body><header><div class="top"><div><h1>Tube Inventory Manager</h1><p>Built By Carlos Miranda</p></div><div><label for="lang" data-i="language">Idioma / Language</label><select id="lang"><option value="en" selected>English</option><option value="es">Español</option></select></div></div></header><main>
 <section class="panel" id="loginPanel"><h2 data-i="login">Iniciar sesión</h2><p class="muted" data-i="loginNote">Utiliza el correo y contraseña de tu cuenta de Supabase Authentication.</p><form id="loginForm"><label for="email" data-i="email">Correo electrónico</label><input id="email" type="email" required autocomplete="username"><label for="password" data-i="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"><button type="submit" data-i="loginButton">Entrar</button></form><p id="loginMessage" role="status" class="alert hidden"></p></section>
+
+<section id="passwordRecoveryPanel" class="panel hidden" aria-live="polite">
+ <h2 id="recoveryHeading">Set a new password</h2>
+ <p class="muted" id="recoveryHelp">Use this form only after opening the password recovery email. Make sure this is your own account.</p>
+ <p id="recoveryAccount" class="muted"></p>
+ <form id="passwordRecoveryForm" autocomplete="off">
+  <label for="recoveryNewPassword" id="recoveryPasswordLabel">New password (12 characters or more)</label>
+  <input id="recoveryNewPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+  <label for="recoveryRepeatPassword" id="recoveryRepeatLabel">Confirm new password</label>
+  <input id="recoveryRepeatPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+  <button type="submit" id="recoverySaveButton">Save new password</button>
+ </form>
+ <p id="recoveryMessage" class="alert hidden" role="status"></p>
+</section>
 <section id="appPanel" class="hidden"><div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong id="welcome"></strong><div class="muted" id="role"></div></div><button id="logout" class="secondary" data-i="logout">Cerrar sesión</button></div><div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
 <div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><div class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
 <div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
@@ -119,6 +133,7 @@
 const SUPABASE_URL='https://dzpbqtfgukzhiirpjqtn.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_DFyZHokdJzPq6zrfw0JVjw_VEzz9JlA';
 const tr={es:{language:'Idioma / Language',login:'Iniciar sesión',loginNote:'Utiliza el correo y contraseña de tu cuenta de Supabase Authentication.',email:'Correo electrónico',password:'Contraseña',loginButton:'Entrar',logout:'Cerrar sesión',stock:'Inventario',products:'Productos',movements:'Historial',operations:'Operaciones',refresh:'Actualizar datos',totalStock:'Tubos registrados',stockRows:'Registros de inventario',department:'Departamento',quantity:'Cantidad',updated:'Actualizado',length:'Largo',material:'Material',date:'Fecha',type:'Tipo',reason:'Motivo',opsNote:'Las entradas, salidas, transferencias y ajustes se habilitarán después de verificar los parámetros de la función segura register_inventory_movement y probar los permisos. No se permiten cambios directos a las tablas de inventario.',loading:'Cargando datos…',empty:'No hay registros todavía.',notMember:'Tu usuario no está registrado en la tabla members. Contacta al administrador.',loadError:'No se pudieron cargar los datos: ',loginError:'No se pudo iniciar sesión: ',logged:'Sesión iniciada',missingLib:'No se pudo cargar la biblioteca de Supabase. Comprueba tu conexión a internet.'},en:{language:'Idioma / Language',login:'Sign in',loginNote:'Use your Supabase Authentication account email and password.',email:'Email',password:'Password',loginButton:'Sign in',logout:'Sign out',stock:'Inventory',products:'Products',movements:'History',operations:'Operations',refresh:'Refresh data',totalStock:'Registered tubes',stockRows:'Inventory records',department:'Department',quantity:'Quantity',updated:'Updated',length:'Length',material:'Material',date:'Date',type:'Type',reason:'Reason',opsNote:'Entries, exits, transfers, and adjustments will be enabled after we verify the secure register_inventory_movement function parameters and test permissions. Direct changes to inventory tables are not permitted.',loading:'Loading data…',empty:'No records yet.',notMember:'Your user is not registered in the members table. Contact an administrator.',loadError:'Unable to load data: ',loginError:'Unable to sign in: ',logged:'Signed in',missingLib:'Could not load the Supabase library. Check your internet connection.'}};
+const recoveryLandingOnLoad=/(?:^|[&#?])type=recovery(?:&|$)/i.test(window.location.hash+'?'+window.location.search);
 const $=id=>document.getElementById(id);let lang='en',client=null,activeView='stock',currentRole='',memberDisplayName='',cache={stock:[],products:[],movements:[],departments:[],warehouse_locations:[],stock_locations:[],catalog_options:[]};const t=k=>tr[lang][k]||k;
 // Bloque 15 — Parche 02: consistent en-US grouping (1,234.50) in numeric fields.
 // A comma is accepted ONLY as a 3-digit grouping separator, never as a decimal separator.
@@ -164,7 +179,7 @@ function td(value){const e=document.createElement('td');e.textContent=value==nul
 function rows(id,data,make){const body=$(id);body.replaceChildren();if(!data.length){let r=document.createElement('tr'),c=td(t('empty'));c.colSpan=6;r.append(c);body.append(r);return}data.forEach(item=>{const r=document.createElement('tr');make(item).forEach(x=>r.append(td(x)));body.append(r)})}
 function render(){const p=new Map(cache.products.map(x=>[x.id,x]));const d=new Map(cache.departments.map(x=>[x.id,x]));$('stockTotal').textContent=cache.stock.reduce((a,x)=>a+(numberFromInput(x.quantity)||0),0).toLocaleString();$('stockCount').textContent=cache.stock.length;rows('stockBody',cache.stock,x=>[p.get(x.product_id)?.sku||x.product_id,d.get(x.department_id)?.name||x.department_id,Number(x.quantity).toLocaleString('en-US'),x.updated_at?new Date(x.updated_at).toLocaleString(lang==='es'?'es-US':'en-US'):'—']);const catalog=new Map((cache.catalog_options||[]).map(o=>[o.id,o]));const catalogValue=(id,category)=>{const option=catalog.get(id);return option&&String(option.category).toLowerCase()===category?option.value:'—'};rows('productsBody',cache.products,x=>[x.sku,catalogValue(x.od_id,'od'),catalogValue(x.wall_id,'wall'),catalogValue(x.length_id,'length'),catalogValue(x.material_id,'material'),x.active===false?t('inactive'):t('active')]);rows('movementsBody',cache.movements,x=>[x.created_at?new Date(x.created_at).toLocaleString(lang==='es'?'es-US':'en-US'):'—',p.get(x.product_id)?.sku||x.product_id,x.movement_type,Number(x.quantity).toLocaleString('en-US'),x.reason]);document.querySelectorAll('.view').forEach(e=>e.classList.toggle('hidden',e.id!==activeView+'View'));document.querySelectorAll('[data-view]').forEach(e=>e.classList.toggle('active',e.dataset.view===activeView))}
 async function load(){showMessage('appMessage',t('loading'),true);const names=['products','departments','stock','movements','warehouse_locations','stock_locations'];try{const results=await Promise.all(names.map(async name=>{let q=client.from(name).select('*');if(name==='movements')q=q.order('created_at',{ascending:false}).limit(200);const {data,error}=await q;if(error)throw new Error(name+': '+error.message);return data||[]}));names.forEach((name,i)=>cache[name]=results[i]);const {data:catalogData,error:catalogError}=await client.from('catalog_options').select('id,category,value,active');if(catalogError){cache.catalog_options=[];render();showMessage('appMessage',t('catalogLoadError')+catalogError.message);return;}cache.catalog_options=catalogData||[];render();showMessage('appMessage','')}catch(e){showMessage('appMessage',t('loadError')+e.message)}}
-async function sync(){const {data:{session},error}=await client.auth.getSession();if(error)showMessage('loginMessage',error.message);$('loginPanel').classList.toggle('hidden',!!session);$('appPanel').classList.toggle('hidden',!session);if(!session){currentRole='';memberDisplayName='';activeView='stock';$('departmentsNav').classList.add('hidden');$('locationsNav').classList.add('hidden');return;}const {data:member,error:memberErr}=await client.from('members').select('display_name,role').eq('user_id',session.user.id).maybeSingle();if(memberErr||!member){currentRole='';memberDisplayName='';$('departmentsNav').classList.add('hidden');$('locationsNav').classList.add('hidden');$('appPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');showMessage('loginMessage',memberErr?memberErr.message:t('notMember'));return}memberDisplayName=member.display_name||session.user.email;currentRole=member.role;updateMemberHeading();activeView='stock';$('departmentsNav').classList.toggle('hidden',currentRole!=='admin');$('locationsNav').classList.toggle('hidden',currentRole!=='admin');await load()}
+async function sync(){const {data:{session},error}=await client.auth.getSession();if(recoveryLandingOnLoad)return;if(error)showMessage('loginMessage',error.message);$('loginPanel').classList.toggle('hidden',!!session);$('appPanel').classList.toggle('hidden',!session);if(!session){currentRole='';memberDisplayName='';activeView='stock';$('departmentsNav').classList.add('hidden');$('locationsNav').classList.add('hidden');return;}const {data:member,error:memberErr}=await client.from('members').select('display_name,role').eq('user_id',session.user.id).maybeSingle();if(memberErr||!member){currentRole='';memberDisplayName='';$('departmentsNav').classList.add('hidden');$('locationsNav').classList.add('hidden');$('appPanel').classList.add('hidden');$('loginPanel').classList.remove('hidden');showMessage('loginMessage',memberErr?memberErr.message:t('notMember'));return}memberDisplayName=member.display_name||session.user.email;currentRole=member.role;updateMemberHeading();activeView='stock';$('departmentsNav').classList.toggle('hidden',currentRole!=='admin');$('locationsNav').classList.toggle('hidden',currentRole!=='admin');await load()}
 $('lang').onchange=e=>{lang=e.target.value;translate()};document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(['departments','locations'].includes(b.dataset.view)&&currentRole!=='admin')return;activeView=b.dataset.view;render()});$('refresh').onclick=load;$('loginForm').onsubmit=async e=>{e.preventDefault();if(!client)return;showMessage('loginMessage','');const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)showMessage('loginMessage',t('loginError')+error.message);else{ $('password').value='';await sync() }};$('logout').onclick=async()=>{await client.auth.signOut();await sync()};
 if(!window.supabase){showMessage('loginMessage',t('missingLib'))}else{client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);sync()}
 // Translations are finalized below.
@@ -1102,6 +1117,86 @@ $('b17Form').addEventListener('submit',async e=>{
   showMessage('b17Message',b17T('saved')+data,true);
  }catch(err){showMessage('b17Message',err.message||String(err));}
  finally{btn.disabled=false;}
+});
+
+
+// ACCOUNT RECOVERY — Password reset UI, bilingual, no inventory or membership writes.
+const recoveryTranslations={
+ en:{heading:'Set a new password',help:'Open this page using your recovery email. Verify the email address below before changing the password.',newPass:'New password (12 characters or more)',confirmPass:'Confirm new password',save:'Save new password',mismatch:'The two passwords do not match.',weak:'Use at least 12 characters.',waiting:'Verifying recovery link…',invalid:'Recovery link is invalid or expired. Ask an administrator to send a new recovery email.',saving:'Updating your password…',done:'Your password was updated. Sign in again with your new password.',wrong:'If this is not your account, close this tab without changing anything.'},
+ es:{heading:'Establecer contraseña nueva',help:'Abre esta página desde el correo de recuperación. Verifica el correo mostrado antes de cambiar la contraseña.',newPass:'Contraseña nueva (12 caracteres o más)',confirmPass:'Confirmar contraseña nueva',save:'Guardar contraseña nueva',mismatch:'Las contraseñas no coinciden.',weak:'Utiliza al menos 12 caracteres.',waiting:'Verificando enlace de recuperación…',invalid:'El enlace es inválido o venció. Solicita otro correo de recuperación al administrador.',saving:'Actualizando contraseña…',done:'Contraseña actualizada. Inicia sesión nuevamente con la nueva contraseña.',wrong:'Si no es tu cuenta, cierra esta pestaña sin cambiar nada.'}
+};
+let recoveryActive=false,recoveryVerified=false,recoveryComplete=false;
+const recoveryT=k=>recoveryTranslations[lang][k];
+const recoveryUrlFlag=()=>/\btype=recovery\b/i.test(window.location.hash+'?'+window.location.search);
+function recoveryTranslate(){
+ for(const [id,key] of Object.entries({recoveryHeading:'heading',recoveryHelp:'help',recoveryPasswordLabel:'newPass',recoveryRepeatLabel:'confirmPass',recoverySaveButton:'save'}))$(id).textContent=recoveryT(key);
+ if(recoveryActive&&!recoveryVerified&&!recoveryComplete)showMessage('recoveryMessage',recoveryT('waiting'));
+}
+function recoveryShow(user){
+ recoveryActive=true;recoveryVerified=true;recoveryComplete=false;
+ $('loginPanel').classList.add('hidden');$('appPanel').classList.add('hidden');
+ $('passwordRecoveryPanel').classList.remove('hidden');
+ $('passwordRecoveryForm').classList.remove('hidden');
+ $('recoveryAccount').textContent=(user?.email||'')+' — '+recoveryT('wrong');
+ recoveryTranslate();showMessage('recoveryMessage','');
+}
+function recoveryFailed(){
+ recoveryActive=true;recoveryVerified=false;
+ $('loginPanel').classList.add('hidden');$('appPanel').classList.add('hidden');
+ $('passwordRecoveryPanel').classList.remove('hidden');
+ $('passwordRecoveryForm').classList.add('hidden');
+ recoveryTranslate();showMessage('recoveryMessage',recoveryT('invalid'));
+}
+if(client){
+ // Supabase v2 detects recovery tokens and validates them when processing the callback URL.
+ // A signed-in session alone never authorizes display of the password change form.
+ const fromRecoveryUrl=recoveryUrlFlag();
+ if(fromRecoveryUrl){
+  recoveryActive=true;
+  $('loginPanel').classList.add('hidden');$('appPanel').classList.add('hidden');
+  $('passwordRecoveryPanel').classList.remove('hidden');
+  $('passwordRecoveryForm').classList.add('hidden');
+  recoveryTranslate();
+ }
+ client.auth.onAuthStateChange((event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+   // Defer UI changes until Supabase finishes processing this auth event.
+   setTimeout(()=>recoveryShow(session?.user),0);
+  }else if(event==='SIGNED_IN'&&recoveryActive&&!recoveryVerified){
+   // Wait for the explicit PASSWORD_RECOVERY event. Do not treat a normal sign-in as recovery.
+  }
+ });
+ // Display invalid-link errors if Supabase redirects back with error information.
+ if(/(?:^|[&#?])error(?:_code|_description)?=/i.test(window.location.hash+'?'+window.location.search)&&fromRecoveryUrl){
+  recoveryFailed();
+ }
+}
+$('passwordRecoveryForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ if(!recoveryVerified||!client)return;
+ const password=$('recoveryNewPassword').value,second=$('recoveryRepeatPassword').value;
+ if(password.length<12){showMessage('recoveryMessage',recoveryT('weak'));return;}
+ if(password!==second){showMessage('recoveryMessage',recoveryT('mismatch'));return;}
+ const button=$('recoverySaveButton');button.disabled=true;
+ showMessage('recoveryMessage',recoveryT('saving'));
+ try{
+  const {error}=await client.auth.updateUser({password});
+  if(error)throw error;
+  $('recoveryNewPassword').value='';$('recoveryRepeatPassword').value='';
+  recoveryVerified=false;recoveryComplete=true;
+  // Prevent reuse of the callback URL; sign out so login explicitly uses the new password.
+  window.history.replaceState(null,'',window.location.pathname);
+  const {error:outError}=await client.auth.signOut();
+  recoveryActive=false;
+  $('passwordRecoveryPanel').classList.add('hidden');
+  $('loginPanel').classList.remove('hidden');$('appPanel').classList.add('hidden');
+  showMessage('loginMessage',recoveryT('done')+(outError?' ('+outError.message+')':''),true);
+ }catch(err){showMessage('recoveryMessage',err.message||String(err));}
+ finally{button.disabled=false;}
+});
+$('lang').addEventListener('change',()=>{
+ recoveryTranslate();
+ if(recoveryActive&&recoveryVerified)$('recoveryAccount').textContent=$('recoveryAccount').textContent.split(' — ')[0]+' — '+recoveryT('wrong');
 });
 
 translate();
