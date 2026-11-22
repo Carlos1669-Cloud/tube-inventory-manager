@@ -115,7 +115,11 @@
 <p class="alert" data-i="b15Help">Los totales de Warehouse y las asignaciones manuales a racks son distintos. Una asignación no añade inventario al total. Las correcciones quedan auditadas.</p>
 <form id="b15Form">
 <label for="b15Kind" data-i="b15KindLabel">Tipo de corrección</label><select id="b15Kind"><option value="total_tubes" data-i="b15TotalTubes">Total de tubos Warehouse</option><option value="total_weight" data-i="b15TotalWeight">Total de libras Warehouse</option><option value="rack_assignment" data-i="b15RackAssignment">Asignación manual a Rack / Bin</option></select>
-<label for="b15Product">SKU</label><select id="b15Product" required></select>
+<label for="b15Product">SKU</label>
+<label for="b15SkuSearch" id="b15SkuSearchLabel" style="font-weight:500;margin:6px 0">Search SKU / Buscar SKU</label>
+<input id="b15SkuSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Type a SKU or choose from the list / Escribe el SKU o usa la lista" aria-controls="b15Product">
+<small id="b15SkuSearchCount" class="muted" aria-live="polite"></small>
+<select id="b15Product" required></select>
 <div id="b15RackRow" class="hidden"><label for="b15Rack" data-i="b15RackLabel">Rack / Bin</label><select id="b15Rack"></select></div>
 <p id="b15Current" class="muted" role="status"></p>
 <div id="b15QtyRow"><label for="b15Qty" data-i="b15Qty">Nuevo total de tubos</label><input id="b15Qty" type="text" inputmode="numeric" data-number-format="integer"></div>
@@ -802,7 +806,14 @@ let b15Balances={stock:[],weights:[],racks:[],audit:[]};
 const b15Warehouse=()=>cache.departments.find(x=>(x.name||'').trim().toLowerCase()==='warehouse');
 function b15Options(){
  if(currentRole!=='admin')return;
- setOptions('b15Product',cache.products,p=>p.sku||p.id);
+ const query=$('b15SkuSearch').value.trim().toLocaleLowerCase();
+ const matches=cache.products.filter(p=>!query||String(p.sku||p.id).toLocaleLowerCase().includes(query));
+ setOptions('b15Product',matches,p=>p.sku||p.id);
+ if(query && matches.length===1 && !$('b15Product').value){
+   $('b15Product').value=matches[0].id;
+   b15Current();
+ }
+ $('b15SkuSearchCount').textContent=query?(lang==='es'?`${matches.length} producto(s) encontrado(s)`:`${matches.length} matching product(s)`):'';
  setOptions('b15Rack',(cache.warehouse_locations||[]).filter(l=>l.active!==false),l=>l.name||l.id);
 }
 function b15Mode(){
@@ -905,7 +916,15 @@ async function b15Load(){
  }catch(err){showMessage('b15Message',t('b15ReadError')+(err.message||String(err)));}
 }
 for(const id of ['b15Qty','b15Packages','b15Weight'])$(id).addEventListener('input',b15Preview);
-$('b15Kind').onchange=b15Mode;$('b15Product').onchange=b15Current;$('b15Rack').onchange=b15Current;
+$('b15Kind').onchange=b15Mode;
+$('b15SkuSearch').addEventListener('input',()=>{b15Options();b15Current();});
+$('b15Product').onchange=b15Current;
+$('b15Rack').onchange=b15Current;
+$('lang').addEventListener('change',()=>{
+ $('b15SkuSearchLabel').textContent=lang==='es'?'Buscar SKU':'Search SKU';
+ $('b15SkuSearch').placeholder=lang==='es'?'Escribe parte del SKU o selecciónalo de la lista':'Type part of the SKU or select from the list';
+ b15Options();
+});
 // Refresh controls clear unsaved inputs only, keeping the selected type, SKU and rack.
 function b15ClearPending(){
  for(const id of ['b15Qty','b15Packages','b15Weight','b15Reason','b15Reference'])$(id).value='';
@@ -913,7 +932,7 @@ function b15ClearPending(){
 }
 $('b15Reload').onclick=async()=>{b15ClearPending();await b15Load();};
 $('refresh').addEventListener('click',()=>{if(currentRole==='admin')b15ClearPending();});
-$('b15Cancel').onclick=()=>{$('b15Form').reset();b15Options();b15Mode();b15Preview();showMessage('b15Message',t('cancelled'),true)};
+$('b15Cancel').onclick=()=>{$('b15Form').reset();$('b15SkuSearch').value='';b15Options();b15Mode();b15Preview();showMessage('b15Message',t('cancelled'),true)};
 $('b15Form').onsubmit=async e=>{
  e.preventDefault();if(currentRole!=='admin'||!client)return;
  const kind=$('b15Kind').value,product=$('b15Product').value,reason=$('b15Reason').value.trim();
