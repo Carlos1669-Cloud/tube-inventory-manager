@@ -31,7 +31,11 @@
  <p id="selfPasswordMessage" class="alert hidden" role="status"></p>
 </section>
 <div class="nav" id="nav"><button data-view="stock" data-i="stock">Inventario</button><button data-view="products" data-i="products">Productos</button><button data-view="movements" data-i="movements">Historial</button><button data-view="operations" data-i="operations">Operaciones</button><button data-view="receiving" data-i="receiving">Receiving</button><button data-view="precutReport" data-i="precutReport">Reporte PRECUT</button><button data-view="productionReport" data-i="productionReport">Reporte Producción</button><button data-view="warehouseReport" data-i="warehouseReport">Reporte Warehouse</button><button data-view="corrections" id="correctionsNav" data-i="b15Title" class="hidden">Correcciones — Administrador</button><button data-view="locations" id="locationsNav" data-i="manageLocations" class="hidden">Ubicaciones</button><button data-view="departments" id="departmentsNav" data-i="manageDepartments" class="hidden">Administrar departamentos</button></div><button id="refresh" class="secondary" data-i="refresh">Actualizar datos</button><p id="appMessage" class="alert hidden" role="status"></p></div>
-<div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><div class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
+<div id="stockView" class="panel view"><h2 data-i="stock">Inventario</h2><div class="summary"><div><span data-i="totalStock">Tubos registrados</span><h2 id="stockTotal">—</h2></div><div><span data-i="stockRows">Registros de inventario</span><h2 id="stockCount">—</h2></div></div><div id="viewStockControls" class="hidden" style="margin:8px 0 14px">
+<button type="button" id="viewHideZero" class="secondary">Hide Zero Balances</button>
+<button type="button" id="viewShowZero" class="secondary hidden">Show All</button>
+<p id="viewStockNote" class="muted" role="status"></p>
+</div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
 <div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
 <div id="measureCatalog" class="panel hidden" style="background:#f8fafc">
 <h3 data-i="measureTitle">Administrar medidas OD y Wall</h3>
@@ -40,7 +44,7 @@
 <div><label for="odSelect">OD</label><select id="odSelect"></select><label for="newOd" data-i="newOd">Nuevo OD (pulgadas)</label><input id="newOd" inputmode="decimal" placeholder="2.125"><button type="button" id="addOd" data-i="addOd">+ Añadir OD</button><button type="button" id="clearOd" class="secondary" data-i="clear">Limpiar</button><button type="button" id="cancelOd" class="secondary" data-i="cancel">Cancelar</button></div>
 <div><label for="wallSelect">Wall</label><select id="wallSelect"></select><label for="newWall" data-i="newWall">Nuevo Wall (pulgadas)</label><input id="newWall" inputmode="decimal" placeholder=".042"><button type="button" id="addWall" data-i="addWall">+ Añadir Wall</button><button type="button" id="clearWall" class="secondary" data-i="clear">Limpiar</button><button type="button" id="cancelWall" class="secondary" data-i="cancel">Cancelar</button></div>
 </div><p id="measureMessage" class="alert hidden" role="status"></p></div><div class="scroll"><table><thead><tr><th>SKU</th><th>OD</th><th>Wall</th><th data-i="length">Largo</th><th data-i="material">Material</th><th data-i="status">Estado</th><th data-i="actions">Acciones</th></tr></thead><tbody id="productsBody"></tbody></table></div></div>
-<div id="movementsView" class="panel view hidden"><h2 data-i="movements">Historial</h2><div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="quantity">Cantidad</th><th data-i="reason">Motivo</th></tr></thead><tbody id="movementsBody"></tbody></table></div></div>
+<div id="movementsView" class="panel view hidden"><h2 data-i="movements">Historial</h2><div id="viewMovementControls" class="hidden" style="margin:8px 0 14px"><button type="button" id="viewClearMovements" class="secondary">Clear History View</button><button type="button" id="viewRestoreMovements" class="secondary hidden">Show All</button><p class="muted" id="viewMovementNote" role="status"></p></div><div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="quantity">Cantidad</th><th data-i="reason">Motivo</th></tr></thead><tbody id="movementsBody"></tbody></table></div></div>
 <div id="operationsView" class="panel view hidden"><h2 data-i="operations">Operaciones</h2>
 <p class="muted" data-i="opsNote">Registra movimientos seguros. Cada operación queda registrada en el historial.</p>
 <div id="opsRestricted" class="alert hidden" data-i="opsRestricted">Solo administradores y supervisores pueden registrar operaciones.</div>
@@ -122,7 +126,7 @@
 <p id="b15Preview" class="alert" role="status" aria-live="polite"></p>
 <button type="submit" id="b15Save" data-i="b15Save">Confirmar corrección</button><button type="button" class="secondary" id="b15Cancel" data-i="cancel">Cancelar</button>
 </form><p class="alert hidden" id="b15Message" role="status"></p>
-<h3 data-i="b15History">Historial de correcciones</h3><button type="button" class="secondary" id="b15Reload" data-i="refresh">Actualizar datos</button>
+<h3 data-i="b15History">Historial de correcciones</h3><button type="button" class="secondary" id="b15Reload" data-i="refresh">Actualizar datos</button><div id="viewAuditControls" class="hidden" style="margin:8px 0 14px"><button type="button" id="viewClearAudit" class="secondary">Clear History View</button><button type="button" id="viewRestoreAudit" class="secondary hidden">Show All</button><p class="muted" id="viewAuditNote" role="status"></p></div>
 <div class="scroll"><table><thead><tr><th data-i="date">Fecha</th><th>SKU</th><th data-i="type">Tipo</th><th data-i="reason">Motivo</th><th data-i="b15Change">Antes → Después</th></tr></thead><tbody id="b15Audit"></tbody></table></div>
 
 <hr style="margin:26px 0;border:0;border-top:1px solid #d6e1eb">
@@ -1268,6 +1272,53 @@ $('selfPasswordForm').addEventListener('submit',async(event)=>{
 });
 $('lang').addEventListener('change',selfPasswordTranslate);
 selfPasswordTranslate();
+
+
+// ADMIN-ONLY PRESENTATION CONTROLS. No Supabase writes/deletes; all data remain intact.
+let viewZeroHidden=false,viewMovementsCleared=false,viewAuditCleared=false;
+const viewTerms={
+ en:{hide:'Hide Zero Balances',show:'Show All',clear:'Clear History View',zeroNote:'Zero-quantity rows are hidden only on this screen. Totals still include all stock records.',historyNote:'History hidden on this screen only. Supabase audit and movements are preserved.',resetNote:'Display restored. No data were changed.'},
+ es:{hide:'Ocultar saldos en cero',show:'Mostrar todo',clear:'Limpiar vista del historial',zeroNote:'Los registros con cero tubos se ocultan solo en esta pantalla. Los totales siguen incluyendo todos los registros.',historyNote:'Historial oculto solo en esta pantalla. Los movimientos y auditorías permanecen en Supabase.',resetNote:'Vista restaurada. No se modificaron datos.'}
+};
+function viewApplyControls(){
+ const admin=currentRole==='admin';
+ for(const id of ['viewStockControls','viewMovementControls','viewAuditControls'])$(id).classList.toggle('hidden',!admin);
+ if(!admin){viewZeroHidden=false;viewMovementsCleared=false;viewAuditCleared=false;}
+ const w=viewTerms[lang];
+ $('viewHideZero').textContent=w.hide;$('viewShowZero').textContent=w.show;
+ $('viewClearMovements').textContent=w.clear;$('viewRestoreMovements').textContent=w.show;
+ $('viewClearAudit').textContent=w.clear;$('viewRestoreAudit').textContent=w.show;
+ $('viewHideZero').classList.toggle('hidden',viewZeroHidden);
+ $('viewShowZero').classList.toggle('hidden',!viewZeroHidden);
+ $('viewClearMovements').classList.toggle('hidden',viewMovementsCleared);
+ $('viewRestoreMovements').classList.toggle('hidden',!viewMovementsCleared);
+ $('viewClearAudit').classList.toggle('hidden',viewAuditCleared);
+ $('viewRestoreAudit').classList.toggle('hidden',!viewAuditCleared);
+ $('viewStockNote').textContent=viewZeroHidden?w.zeroNote:'';
+ $('viewMovementNote').textContent=viewMovementsCleared?w.historyNote:'';
+ $('viewAuditNote').textContent=viewAuditCleared?w.historyNote:'';
+ if(viewZeroHidden){
+   // Stock table is already populated in render; hide the rows without changing cached records.
+   const data=cache.stock||[];
+   [...$('stockBody').children].forEach((row,i)=>{row.hidden=Number(data[i]?.quantity)===0;row.style.display=row.hidden?'none':'';});
+ }else [...$('stockBody').children].forEach(row=>{row.hidden=false;row.style.display='';});
+ if(viewMovementsCleared)$('movementsBody').replaceChildren();
+ if(viewAuditCleared)$('b15Audit').replaceChildren();
+}
+const viewPreviousRender=render;
+render=function(){viewPreviousRender();viewApplyControls();};
+const viewPreviousTranslate=translate;
+translate=function(){viewPreviousTranslate();viewApplyControls();};
+const viewPreviousB15Load=b15Load;
+b15Load=async function(){await viewPreviousB15Load();viewApplyControls();};
+$('viewHideZero').onclick=()=>{if(currentRole!=='admin')return;viewZeroHidden=true;render();};
+$('viewShowZero').onclick=()=>{if(currentRole!=='admin')return;viewZeroHidden=false;render();};
+$('viewClearMovements').onclick=()=>{if(currentRole!=='admin')return;viewMovementsCleared=true;viewApplyControls();};
+$('viewRestoreMovements').onclick=()=>{if(currentRole!=='admin')return;viewMovementsCleared=false;render();};
+$('viewClearAudit').onclick=()=>{if(currentRole!=='admin')return;viewAuditCleared=true;viewApplyControls();};
+$('viewRestoreAudit').onclick=async()=>{if(currentRole!=='admin')return;viewAuditCleared=false;await b15Load();};
+// Clear presentation-only choices on logout; never persist them.
+$('logout').addEventListener('click',()=>{viewZeroHidden=false;viewMovementsCleared=false;viewAuditCleared=false;});
 
 translate();
 </script></body></html>
