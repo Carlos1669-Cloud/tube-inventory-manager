@@ -37,6 +37,25 @@
 <p id="viewStockNote" class="muted" role="status"></p>
 </div><div class="scroll"><table><thead><tr><th>SKU</th><th data-i="department">Departamento</th><th data-i="quantity">Cantidad</th><th data-i="updated">Actualizado</th></tr></thead><tbody id="stockBody"></tbody></table></div></div>
 <div id="productsView" class="panel view hidden"><h2 data-i="products">Productos</h2>
+<section id="p18CreatePanel" class="panel hidden" style="background:#f8fafc; margin:14px 0" aria-label="Create inventory product">
+ <h3 id="p18Heading">Add New Product</h3>
+ <p id="p18Intro" class="muted">Create a product catalog record. No stock quantities or pounds are added.</p>
+ <form id="p18CreateForm" autocomplete="off">
+  <label for="p18Sku">SKU / Item Number</label><input id="p18Sku" maxlength="120" required placeholder="RAW-10058-240" spellcheck="false">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:12px" id="p18Fields">
+   <div><label for="p18Od">OD (in)</label><select id="p18Od" required></select><button type="button" class="secondary" id="p18NewOd">+ Add OD</button></div>
+   <div><label for="p18Wall">Wall (in)</label><select id="p18Wall" required></select><button type="button" class="secondary" id="p18NewWall">+ Add Wall</button></div>
+   <div><label for="p18Length" id="p18LengthLabel">Length (in)</label><select id="p18Length" required></select><button type="button" class="secondary" id="p18NewLength">+ Add Length</button></div>
+   <div><label for="p18Material" id="p18MaterialLabel">Material</label><select id="p18Material" required></select><button type="button" class="secondary" id="p18NewMaterial">+ Add Material</button></div>
+   <div><label for="p18Brand" id="p18BrandLabel">Brand</label><select id="p18Brand" required></select><button type="button" class="secondary" id="p18NewBrand">+ Add Brand</button></div>
+   <div><label for="p18Supplier" id="p18SupplierLabel">Supplier</label><select id="p18Supplier" required></select><button type="button" class="secondary" id="p18NewSupplier">+ Add Supplier</button></div>
+  </div>
+  <label for="p18Notes" id="p18NotesLabel">Notes (optional)</label><input id="p18Notes" maxlength="500">
+  <button type="submit" id="p18Save">Save Product</button><button type="button" id="p18Clear" class="secondary">Clear</button>
+  <p class="alert hidden" id="p18Message" role="status"></p>
+ </form>
+</section>
+
 <div id="measureCatalog" class="panel hidden" style="background:#f8fafc">
 <h3 data-i="measureTitle">Administrar medidas OD y Wall</h3>
 <p class="muted" data-i="measureHelp">Selecciona una medida existente o añade una nueva. Las anteriores permanecen disponibles.</p>
@@ -1338,6 +1357,85 @@ $('viewClearAudit').onclick=()=>{if(currentRole!=='admin')return;viewAuditCleare
 $('viewRestoreAudit').onclick=async()=>{if(currentRole!=='admin')return;viewAuditCleared=false;await b15Load();};
 // Clear presentation-only choices on logout; never persist them.
 $('logout').addEventListener('click',()=>{viewZeroHidden=false;viewMovementsCleared=false;viewAuditCleared=false;});
+
+
+// BLOCK 18: admin-only product creation; secure RPC enforces admin privileges in database.
+const p18Types=[['od','p18Od'],['wall','p18Wall'],['length','p18Length'],['material','p18Material'],['brand','p18Brand'],['supplier','p18Supplier']];
+const p18Msg={
+ en:{heading:'Add New Product',intro:'Create a product catalog record. No tubes, packages, or pounds will be added to inventory.',length:'Length (in)',material:'Material',brand:'Brand',supplier:'Supplier',notes:'Notes (optional)',save:'Save Product',clear:'Clear',choose:'Select an option',add:'+ Add ',newValue:'Enter a new value for ',cancel:'Cancelled; nothing saved.',numbers:'OD, Wall and Length must be positive numbers.',missing:'Complete the SKU and all six catalog fields.',duplicate:'This SKU already exists. Select the existing product instead.',saving:'Saving product…',saved:'Product created. It has no inventory until a receiving or authorized operation is posted.',confirm:'Create this SKU with the selected details? No stock will be added.',valueSaved:'Catalog value added. The new option is selected.',valueExists:'This option already exists and has been selected.',valueInactive:'This option is inactive. Ask the administrator to reactivate it.',server:'Supabase rejected the operation: '},
+ es:{heading:'Añadir producto nuevo',intro:'Crea un producto en el catálogo. No se añaden tubos, paquetes ni libras al inventario.',length:'Largo (pulgadas)',material:'Material',brand:'Marca',supplier:'Proveedor',notes:'Notas (opcional)',save:'Guardar producto',clear:'Limpiar',choose:'Selecciona una opción',add:'+ Añadir ',newValue:'Escribe un valor nuevo para ',cancel:'Cancelado; no se guardó nada.',numbers:'OD, Wall y Largo deben ser números positivos.',missing:'Completa el SKU y los seis campos del catálogo.',duplicate:'Ese SKU ya existe. Selecciona el producto existente.',saving:'Guardando producto…',saved:'Producto creado. No tiene existencias hasta contabilizar una recepción u operación autorizada.',confirm:'¿Crear este SKU con los datos seleccionados? No se añadirá inventario.',valueSaved:'Valor añadido al catálogo. Se ha seleccionado la nueva opción.',valueExists:'Este valor ya existe y quedó seleccionado.',valueInactive:'Este valor está desactivado. Solicita su reactivación.',server:'Supabase rechazó la operación: '}
+};
+function p18Message(value,ok=false){showMessage('p18Message',value,ok)}
+function p18Translate(){
+ const w=p18Msg[lang];
+ for(const [id,value] of Object.entries({p18Heading:w.heading,p18Intro:w.intro,p18LengthLabel:w.length,p18MaterialLabel:w.material,p18BrandLabel:w.brand,p18SupplierLabel:w.supplier,p18NotesLabel:w.notes,p18Save:w.save,p18Clear:w.clear}))$(id).textContent=value;
+ for(const [category] of p18Types){const id='p18New'+category[0].toUpperCase()+category.slice(1);$(id).textContent=w.add+({od:'OD',wall:'Wall',length:lang==='es'?'Largo':'Length',material:'Material',brand:lang==='es'?'Marca':'Brand',supplier:lang==='es'?'Proveedor':'Supplier'}[category]);}
+}
+function p18Canonical(category,v){
+ const s=String(v??'').trim();
+ if(['od','wall','length'].includes(category)){
+  if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(s))return null;
+  const num=Number(s); if(!Number.isFinite(num)||num<=0||num>100000)return null;
+  return category==='length'?String(num):String(num).replace(/^0\./,'.');
+ }
+ return s.length>0&&s.length<=120?s:null;
+}
+function p18SelectOptions(){
+ const w=p18Msg[lang];
+ for(const [category,id] of p18Types){
+  const sel=$(id),old=sel.value;sel.replaceChildren();
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=w.choose;sel.append(placeholder);
+  const values=(cache.catalog_options||[]).filter(x=>x.category===category&&x.active!==false);
+  values.sort((a,b)=>['od','wall','length'].includes(category)?Number(a.value)-Number(b.value):String(a.value).localeCompare(String(b.value)));
+  for(const opt of values){const el=document.createElement('option');el.value=opt.id;el.textContent=opt.value+(['od','wall','length'].includes(category)?'"':'');sel.append(el);}
+  sel.value=values.some(o=>o.id===old)?old:'';
+ }
+}
+const p18BeforeRender=render;
+render=function(){p18BeforeRender();$('p18CreatePanel').classList.toggle('hidden',currentRole!=='admin');p18SelectOptions();};
+const p18BeforeTranslate=translate;
+translate=function(){p18BeforeTranslate();p18Translate();};
+p18Translate();
+for(const [category,id] of p18Types){
+ $('p18New'+category[0].toUpperCase()+category.slice(1)).addEventListener('click',async()=>{
+  if(currentRole!=='admin'||!client)return;
+  const w=p18Msg[lang],raw=window.prompt(w.newValue+category.toUpperCase()+':');
+  if(raw===null)return;
+  const value=p18Canonical(category,raw);
+  if(!value){p18Message(['od','wall','length'].includes(category)?w.numbers:w.missing);return;}
+  const existing=cache.catalog_options.find(x=>x.category===category&&String(x.value).toLowerCase()===String(value).toLowerCase());
+  if(existing){if(existing.active===false){p18Message(w.valueInactive);return;}$(id).value=existing.id;p18Message(w.valueExists,true);return;}
+  const button=$('p18New'+category[0].toUpperCase()+category.slice(1));button.disabled=true;
+  try{
+   const {data,error}=await client.rpc('create_inventory_catalog_option',{p_category:category,p_value:value});
+   if(error)throw error;
+   const {data:all,error:fetchError}=await client.from('catalog_options').select('id,category,value,active');
+   if(fetchError)throw fetchError;cache.catalog_options=all||[];
+   p18SelectOptions();$(id).value=data;p18Message(w.valueSaved,true);
+  }catch(e){p18Message(w.server+(e.message||String(e)));}
+  finally{button.disabled=false;}
+ });
+}
+$('p18Clear').addEventListener('click',()=>{$('p18CreateForm').reset();p18Message('');});
+$('p18CreateForm').addEventListener('submit',async(e)=>{
+ e.preventDefault();if(!client||currentRole!=='admin')return;
+ const w=p18Msg[lang],sku=$('p18Sku').value.trim();
+ const choice=Object.fromEntries(p18Types.map(([cat,id])=>[cat,$(id).value]));
+ if(!sku||Object.values(choice).some(v=>!v)){p18Message(w.missing);return;}
+ if(cache.products.some(p=>String(p.sku||'').toLowerCase()===sku.toLowerCase())){p18Message(w.duplicate);return;}
+ if(!window.confirm(w.confirm+'\nSKU: '+sku))return;
+ const button=$('p18Save');button.disabled=true;p18Message(w.saving);
+ try{
+  const {error}=await client.rpc('create_inventory_product',{
+   p_sku:sku,p_od_id:choice.od,p_wall_id:choice.wall,p_length_id:choice.length,
+   p_material_id:choice.material,p_brand_id:choice.brand,p_supplier_id:choice.supplier,
+   p_notes:$('p18Notes').value.trim()||null
+  });
+  if(error)throw error;
+  $('p18CreateForm').reset();await load();p18Message(w.saved+' SKU: '+sku,true);
+ }catch(error){p18Message(w.server+(error.message||String(error)));}
+ finally{button.disabled=false;}
+});
 
 translate();
 </script></body></html>
