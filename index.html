@@ -107,7 +107,7 @@
 <label for="recvBol" data-i="recvBol">Bill of Lading (BOL)</label><input id="recvBol" maxlength="120" placeholder="BOL-0001">
 <label for="recvSupplier" data-i="recvSupplier">Proveedor</label><input id="recvSupplier" maxlength="150" placeholder="Supplier / Proveedor">
 <label for="recvDate" data-i="recvDate">Fecha de recepción</label><input id="recvDate" type="date">
-<h3 data-i="recvProducts">Productos de la recepción</h3><div id="recvItems"></div>
+<h3 data-i="recvProducts">Productos de la recepción</h3><p id="recvBalanceHelp" class="muted">Current Warehouse balances are shown for reference. They are not added again to inventory.</p><button type="button" id="recvBalanceRefresh" class="secondary">Refresh current balances</button><div id="recvItems"></div>
 <button type="button" id="recvAddItem" data-i="recvAddItem">+ Añadir producto</button>
 <div class="summary" style="margin-top:16px"><div><span data-i="recvTotalQty">Total tubos</span><h2 id="recvSumQty">0</h2></div><div><span data-i="recvTotalPackages">Total cajas</span><h2 id="recvSumPackages">0</h2></div><div><span data-i="recvTotalWeight">Peso neto declarado (lb)</span><h2 id="recvSumWeight">0</h2></div></div>
 <button type="button" id="recvValidate" data-i="recvValidate">Validar borrador</button><button type="button" id="recvSaveDraft" data-i="recvSaveDraft">Guardar borrador</button><button type="button" id="recvPost" data-i="recvPost" disabled title="Pendiente de conexión segura a Supabase">Contabilizar Receiving</button><button type="button" id="recvReset" class="secondary" data-i="recvReset">Limpiar formulario</button><button type="button" id="recvCancel" class="secondary" data-i="cancel">Cancelar</button>
@@ -1436,6 +1436,91 @@ $('p18CreateForm').addEventListener('submit',async(e)=>{
  }catch(error){p18Message(w.server+(error.message||String(error)));}
  finally{button.disabled=false;}
 });
+
+
+// BLOCK 18B: READ-ONLY per-product Warehouse balance inside Receiving.
+// Uses exactly the same inventory_weight_balances table as Warehouse Report.
+// Never writes to stock, racks, movement history, receipts, or weight balances.
+const recvBalanceWords={
+ en:{help:'Current Warehouse balances are shown for reference. Rack allocations are already included in Warehouse totals.',refresh:'Refresh current balances',title:'Current Warehouse inventory · before receiving',current:'Current balance',incoming:'New receiving (not posted)',expected:'Expected after posting',tubes:'tubes',lb:'lb',unknown:'Enter the incoming weight to calculate an expected balance.',pending:'Loading current balance from Supabase…',choose:'Select a product SKU to see its Warehouse balance.',error:'Unable to read existing inventory: ',unavailable:'Balance unavailable — do not assume zero.',note:'Preview only. Inventory changes only when Receiving is posted.',noChange:'Not posted',missing:'No existing Warehouse balance record. Showing 0 only for a verified empty record.'},
+ es:{help:'Los balances actuales de Warehouse se muestran como referencia. Los Racks ya están incluidos en los totales de Warehouse.',refresh:'Actualizar balances actuales',title:'Inventario actual de Warehouse · antes de recibir',current:'Balance actual',incoming:'Nueva recepción (sin contabilizar)',expected:'Esperado después de contabilizar',tubes:'tubos',lb:'lb',unknown:'Introduce las libras nuevas para calcular el balance esperado.',pending:'Consultando balance actual en Supabase…',choose:'Selecciona un SKU para ver el balance de Warehouse.',error:'No se pudo consultar el inventario existente: ',unavailable:'Balance no disponible; no supongas cero.',note:'Solo vista previa. El inventario cambia al contabilizar Receiving.',noChange:'Sin contabilizar',missing:'Sin balance anterior en Warehouse. Cero confirmado para este producto.'}
+};
+let recvBalanceCache=new Map(),recvBalanceRequests=new Map();
+let recvBalanceEpoch=0;
+function recvBalanceText(el,value){const n=document.createElement('span');n.textContent=String(value);el.append(n);}
+function recvBalanceFormat(n){return Number(n).toLocaleString('en-US',{maximumFractionDigits:3});}
+function recvBalanceRender(){
+ const w=recvBalanceWords[lang];
+ $('recvBalanceHelp').textContent=w.help;
+ $('recvBalanceRefresh').textContent=w.refresh;
+ const cards=$('recvItems').children;
+ receivingItems.forEach((item,i)=>{
+  const card=cards[i];if(!card)return;
+  let panel=card.querySelector('[data-recv-current-balance]');
+  if(!panel){panel=document.createElement('div');panel.dataset.recvCurrentBalance='1';panel.style.cssText='margin:12px 0;padding:14px;background:#eef6fb;border:1px solid #c6dce9;border-radius:9px';card.append(panel);}
+  panel.replaceChildren();
+  const heading=document.createElement('strong');heading.textContent=w.title;panel.append(heading);
+  const details=document.createElement('p');details.style.margin='7px 0 0';panel.append(details);
+  if(!item.product){details.textContent=w.choose;return;}
+  const rec=recvBalanceCache.get(item.product);
+  if(!rec){details.textContent=w.pending;return;}
+  if(rec.error){details.textContent=w.error+rec.error;return;}
+  const q=numberFromInput(item.quantity),wt=item.weight.trim()===''?NaN:numberFromInput(item.weight);
+  const validQ=Number.isSafeInteger(q)&&q>=0,validW=Number.isFinite(wt)&&wt>=0;
+  const sku=cache.products.find(x=>x.id===item.product)?.sku||'SKU';
+  const cur=`${w.current}: ${recvBalanceFormat(rec.tubes)} ${w.tubes} · ${recvBalanceFormat(rec.weight)} ${w.lb}`;
+  const addition=`${w.incoming}: ${validQ?recvBalanceFormat(q):'—'} ${w.tubes} · ${validW?recvBalanceFormat(wt):'—'} ${w.lb}`;
+  const result=`${w.expected}: ${validQ?recvBalanceFormat(rec.tubes+q):'—'} ${w.tubes} · ${validW?recvBalanceFormat(rec.weight+wt):'—'} ${w.lb}`;
+  details.textContent=sku+'\n'+cur+'\n'+addition+'\n'+result+'\n'+(validW?w.note:w.unknown);
+  details.style.whiteSpace='pre-line';
+ });
+}
+async function recvBalanceFetch(productId,force=false){
+ if(!client||!productId)return;
+ if(!force&&recvBalanceCache.has(productId))return;
+ if(recvBalanceRequests.has(productId))return recvBalanceRequests.get(productId);
+ const epoch=recvBalanceEpoch;
+ const work=(async()=>{
+  try{
+   const wh=cache.departments.find(d=>String(d.name||'').trim().toLowerCase()==='warehouse'&&d.active!==false);
+   if(!wh)throw Error('Warehouse department not found');
+   const [weightResponse,tubesResponse]=await Promise.all([
+     client.from('inventory_weight_balances').select('weight_lb').eq('department_id',wh.id).eq('product_id',productId).maybeSingle(),
+     client.from('stock').select('quantity').eq('department_id',wh.id).eq('product_id',productId).maybeSingle()
+   ]);
+   if(weightResponse.error)throw weightResponse.error;
+   if(tubesResponse.error)throw tubesResponse.error;
+   const weight=Number(weightResponse.data?.weight_lb??0),tubes=Number(tubesResponse.data?.quantity??0);
+   if(!Number.isFinite(weight)||!Number.isFinite(tubes))throw Error('Invalid balance returned');
+   if(epoch===recvBalanceEpoch)recvBalanceCache.set(productId,{weight,tubes});
+  }catch(err){if(epoch===recvBalanceEpoch)recvBalanceCache.set(productId,{error:err.message||String(err)});}
+  finally{recvBalanceRequests.delete(productId);recvBalanceRender();}
+ })();
+ recvBalanceRequests.set(productId,work);
+ return work;
+}
+function recvBalanceFetchSelected(force=false){
+ for(const id of new Set(receivingItems.map(x=>x.product).filter(Boolean)))recvBalanceFetch(id,force);
+}
+const recvBalanceBeforeRender=recvRender;
+recvRender=function(){recvBalanceBeforeRender();recvBalanceRender();recvBalanceFetchSelected();};
+$('recvItems').addEventListener('input',()=>{
+ recvBalanceRender();recvBalanceFetchSelected();
+});
+$('recvItems').addEventListener('change',()=>{
+ recvBalanceRender();recvBalanceFetchSelected();
+});
+$('recvBalanceRefresh').addEventListener('click',()=>{
+ recvBalanceEpoch++;recvBalanceCache.clear();recvBalanceRequests.clear();
+ recvBalanceRender();recvBalanceFetchSelected(true);
+});
+document.querySelector('[data-view="receiving"]').addEventListener('click',()=>{
+ // Retrieve fresh balances when opening Receiving, not cached values from an earlier session.
+ recvBalanceEpoch++;recvBalanceCache.clear();recvBalanceRequests.clear();
+ recvBalanceRender();recvBalanceFetchSelected(true);
+});
+$('lang').addEventListener('change',recvBalanceRender);
+recvBalanceRender();
 
 translate();
 </script></body></html>
